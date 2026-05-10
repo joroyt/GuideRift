@@ -8,7 +8,6 @@ interface Totals {
   page_views: number
   completions: number
   completion_rate: number
-  estimated_revenue: number
 }
 
 interface PerLink {
@@ -19,7 +18,6 @@ interface PerLink {
   starts: number
   completions: number
   completion_rate: number
-  revenue: number
 }
 
 interface PerTask {
@@ -28,7 +26,6 @@ interface PerTask {
   shown: number
   completed: number
   completion_rate: number
-  revenue: number
 }
 
 interface AnalyticsData {
@@ -153,7 +150,6 @@ export default function AdminAnalyticsPage() {
             <MetricCard label="Page views" value={data.totals.page_views.toLocaleString()} />
             <MetricCard label="Completions" value={data.totals.completions.toLocaleString()} />
             <MetricCard label="Completion rate" value={pct(data.totals.completion_rate)} />
-            <MetricCard label="Est. revenue" value={`€${data.totals.estimated_revenue.toFixed(2)}`} />
           </div>
 
           {/* Per-link table */}
@@ -182,7 +178,6 @@ export default function AdminAnalyticsPage() {
                     <th style={{ ...thStyle, textAlign: 'right' }}>Starts</th>
                     <th style={{ ...thStyle, textAlign: 'right' }}>Completions</th>
                     <th style={{ ...thStyle, textAlign: 'right' }}>Rate</th>
-                    <th style={{ ...thStyle, textAlign: 'right' }}>Est. Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -198,7 +193,6 @@ export default function AdminAnalyticsPage() {
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{row.starts.toLocaleString()}</td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{row.completions.toLocaleString()}</td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{pct(row.completion_rate)}</td>
-                      <td style={{ ...tdStyle, textAlign: 'right' }}>€{row.revenue.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -230,7 +224,6 @@ export default function AdminAnalyticsPage() {
                     <th style={{ ...thStyle, textAlign: 'right' }}>Times shown</th>
                     <th style={{ ...thStyle, textAlign: 'right' }}>Completions</th>
                     <th style={{ ...thStyle, textAlign: 'right' }}>Rate</th>
-                    <th style={{ ...thStyle, textAlign: 'right' }}>Est. Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -240,7 +233,6 @@ export default function AdminAnalyticsPage() {
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{row.shown.toLocaleString()}</td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{row.completed.toLocaleString()}</td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{pct(row.completion_rate)}</td>
-                      <td style={{ ...tdStyle, textAlign: 'right' }}>€{row.revenue.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>

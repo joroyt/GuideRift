@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from('analytics_events')
-    .select('event_type, link_id, task_id, links(title, slug), tasks(name, payout_estimate)')
+    .select('event_type, link_id, task_id, links(title, slug), tasks(name)')
 
   if (startDate) {
     query = query.gte('created_at', startDate)
@@ -49,15 +49,6 @@ export async function GET(req: NextRequest) {
   const totalCompletions = rows.filter((e) => e.event_type === 'task_completed').length
   const completionRate = totalPageViews > 0 ? totalCompletions / totalPageViews : 0
 
-  // Revenue estimate: sum completions × task payout
-  let estimatedRevenue = 0
-  for (const e of rows) {
-    if (e.event_type === 'task_completed') {
-      const payout = (e.tasks as any)?.payout_estimate ?? 0
-      estimatedRevenue += Number(payout)
-    }
-  }
-
   // Per-link breakdown
   const linkMap: Record<
     string,
@@ -67,7 +58,6 @@ export async function GET(req: NextRequest) {
       views: number
       starts: number
       completions: number
-      revenue: number
     }
   > = {}
 
@@ -80,15 +70,11 @@ export async function GET(req: NextRequest) {
         views: 0,
         starts: 0,
         completions: 0,
-        revenue: 0,
       }
     }
     if (e.event_type === 'page_view') linkMap[e.link_id].views++
     if (e.event_type === 'task_started') linkMap[e.link_id].starts++
-    if (e.event_type === 'task_completed') {
-      linkMap[e.link_id].completions++
-      linkMap[e.link_id].revenue += Number((e.tasks as any)?.payout_estimate ?? 0)
-    }
+    if (e.event_type === 'task_completed') linkMap[e.link_id].completions++
   }
 
   const perLink = Object.entries(linkMap).map(([id, d]) => ({
@@ -100,7 +86,7 @@ export async function GET(req: NextRequest) {
   // Per-task breakdown
   const taskMap: Record<
     string,
-    { name: string; shown: number; completed: number; revenue: number }
+    { name: string; shown: number; completed: number }
   > = {}
 
   for (const e of rows) {
@@ -110,14 +96,10 @@ export async function GET(req: NextRequest) {
         name: (e.tasks as any)?.name ?? 'Unknown',
         shown: 0,
         completed: 0,
-        revenue: 0,
       }
     }
     if (e.event_type === 'task_started') taskMap[e.task_id].shown++
-    if (e.event_type === 'task_completed') {
-      taskMap[e.task_id].completed++
-      taskMap[e.task_id].revenue += Number((e.tasks as any)?.payout_estimate ?? 0)
-    }
+    if (e.event_type === 'task_completed') taskMap[e.task_id].completed++
   }
 
   const perTask = Object.entries(taskMap).map(([id, d]) => ({
@@ -131,7 +113,6 @@ export async function GET(req: NextRequest) {
       page_views: totalPageViews,
       completions: totalCompletions,
       completion_rate: completionRate,
-      estimated_revenue: estimatedRevenue,
     },
     per_link: perLink,
     per_task: perTask,

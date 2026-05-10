@@ -213,17 +213,6 @@ export default function AdminTasksPage() {
                 placeholder="https://affiliate-link.com/..."
               />
             </div>
-            <div>
-              <label style={label}>Payout estimate (€)</label>
-              <input
-                style={{ ...inputStyle, width: '160px' }}
-                type="number"
-                min="0"
-                step="0.01"
-                value={fPayout}
-                onChange={(e) => setFPayout(e.target.value)}
-              />
-            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <label style={{ ...label, marginBottom: 0 }}>Active</label>
               <div
@@ -321,7 +310,6 @@ export default function AdminTasksPage() {
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Name</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Description</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Affiliate URL</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right' }}>Payout</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Active</th>
                 <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
               </tr>
@@ -340,9 +328,6 @@ export default function AdminTasksPage() {
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>
                     {truncate(task.affiliate_url, 40)}
-                  </td>
-                  <td style={{ padding: '12px 16px', fontSize: '12px', color: 'rgba(255,255,255,0.6)', textAlign: 'right' }}>
-                    €{Number(task.payout_estimate).toFixed(2)}
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     <div

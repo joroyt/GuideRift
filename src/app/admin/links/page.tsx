@@ -273,7 +273,6 @@ export default function AdminLinksPage() {
                 style={input}
                 value={fTitle}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                placeholder="MSI Afterburner Setup Guide"
               />
             </div>
 
@@ -299,7 +298,6 @@ export default function AdminLinksPage() {
                   style={{ ...input, paddingLeft: '20px' }}
                   value={fSlug}
                   onChange={(e) => handleSlugChange(e.target.value)}
-                  placeholder="msi-afterburner-setup-guide"
                 />
               </div>
             </div>
@@ -311,7 +309,6 @@ export default function AdminLinksPage() {
                 style={input}
                 value={fUrl}
                 onChange={(e) => setFUrl(e.target.value)}
-                placeholder="https://example.com/download"
               />
             </div>
 
@@ -349,40 +346,41 @@ export default function AdminLinksPage() {
             {/* Task assignment */}
             <div>
               <label style={label}>Assign tasks</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
-                {allTasks.map((task) => {
-                  const assigned = fTasks.some((t) => t.task_id === task.id)
-                  return (
-                    <label
-                      key={task.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '8px 10px',
-                        borderRadius: '8px',
-                        background: '#1a1a1a',
-                        cursor: 'pointer',
-                        fontSize: '13px',
-                        color: assigned ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={assigned}
-                        onChange={() => toggleTaskAssign(task.id)}
-                        style={{ accentColor: '#63b3ed' }}
-                      />
-                      {task.name}
-                    </label>
-                  )
-                })}
-                {allTasks.length === 0 && (
-                  <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', margin: 0 }}>
-                    No active tasks. Create tasks first.
-                  </p>
-                )}
-              </div>
+              {allTasks.length === 0 ? (
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', margin: '2px 0 10px' }}>
+                  No active tasks. Create tasks first.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+                  {allTasks.map((task) => {
+                    const assigned = fTasks.some((t) => t.task_id === task.id)
+                    return (
+                      <label
+                        key={task.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          background: '#1a1a1a',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          color: assigned ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={assigned}
+                          onChange={() => toggleTaskAssign(task.id)}
+                          style={{ accentColor: '#63b3ed' }}
+                        />
+                        {task.name}
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
 
               {/* Order + recommended */}
               {assignedTaskObjects.length > 0 && (
