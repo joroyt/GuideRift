@@ -42,7 +42,7 @@ export default function HomePage() {
               marginBottom: '10px',
             }}
           >
-            GuideMaxxing
+            GuideRift
           </h1>
           <p
             style={{
