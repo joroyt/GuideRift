@@ -27,8 +27,9 @@ export async function POST(req: NextRequest) {
 
   let sr: string
   try {
+    const completionUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/workink/complete?linkId=${link.id}&taskId=${taskId}&dest=${encodeURIComponent(link.destination_url)}`
     const workinkRes = await fetch(
-      `https://work.ink/_api/v2/override?destination=${encodeURIComponent(link.destination_url)}`
+      `https://work.ink/_api/v2/override?destination=${encodeURIComponent(completionUrl)}`
     )
     if (!workinkRes.ok) {
       throw new Error(`Work.ink API returned ${workinkRes.status}`)

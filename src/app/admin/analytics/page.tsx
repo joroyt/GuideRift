@@ -23,6 +23,7 @@ interface PerLink {
 interface PerTask {
   id: string
   name: string
+  task_type: string
   shown: number
   completed: number
   completion_rate: number
@@ -229,7 +230,25 @@ export default function AdminAnalyticsPage() {
                 <tbody>
                   {data.per_task.map((row) => (
                     <tr key={row.id}>
-                      <td style={{ ...tdStyle, color: 'rgba(255,255,255,0.82)', fontWeight: 500 }}>{row.name}</td>
+                      <td style={{ ...tdStyle }}>
+                        <span style={{ color: 'rgba(255,255,255,0.82)', fontWeight: 500 }}>{row.name}</span>
+                        {row.task_type === 'workink' && (
+                          <span style={{
+                            marginLeft: '8px',
+                            fontSize: '10px',
+                            fontWeight: 600,
+                            letterSpacing: '0.04em',
+                            textTransform: 'uppercase',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            background: 'rgba(255,180,0,0.12)',
+                            color: 'rgba(255,180,0,0.75)',
+                            border: '0.5px solid rgba(255,180,0,0.2)',
+                          }}>
+                            Watch Ads
+                          </span>
+                        )}
+                      </td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{row.shown.toLocaleString()}</td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{row.completed.toLocaleString()}</td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{pct(row.completion_rate)}</td>

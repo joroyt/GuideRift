@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from('analytics_events')
-    .select('event_type, link_id, task_id, links(title, slug), tasks(name)')
+    .select('event_type, link_id, task_id, links(title, slug), tasks(name, task_type)')
 
   if (startDate) {
     query = query.gte('created_at', startDate)
@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
   // Per-task breakdown
   const taskMap: Record<
     string,
-    { name: string; shown: number; completed: number }
+    { name: string; task_type: string; shown: number; completed: number }
   > = {}
 
   for (const e of rows) {
@@ -94,6 +94,7 @@ export async function GET(req: NextRequest) {
     if (!taskMap[e.task_id]) {
       taskMap[e.task_id] = {
         name: (e.tasks as any)?.name ?? 'Unknown',
+        task_type: (e.tasks as any)?.task_type ?? 'cpi',
         shown: 0,
         completed: 0,
       }
