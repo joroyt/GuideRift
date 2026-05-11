@@ -12,11 +12,6 @@ export const metadata: Metadata = {
     follow: false,
   },
   manifest: '/site.webmanifest',
-  verification: {
-    other: {
-      'mylead-verification': '2f608a11cf0b466e60b716f935639fe1',
-    },
-  },
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
