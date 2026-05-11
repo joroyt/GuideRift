@@ -8,7 +8,12 @@
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Sort-Object)",
       "Bash(Get-ChildItem -Path \"E:\\\\Projects\\\\link-shortener\" -Recurse -Depth 3)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(ffmpeg -i favicon.png -vf scale=16:16 public/favicon-16x16.png -y)",
+      "Bash(ffmpeg -i favicon.png -vf scale=32:32 public/favicon-32x32.png -y)",
+      "Bash(ffmpeg -i favicon.png -vf scale=48:48 public/favicon-48x48.png -y)",
+      "Bash(ffmpeg -i favicon.png -vf scale=180:180 public/apple-touch-icon.png -y)",
+      "Bash(ffmpeg -i favicon.png -vf scale=192:192 public/android-chrome-192x192.png -y)"
     ]
   }
 }
