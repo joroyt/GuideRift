@@ -53,7 +53,7 @@ export default function HomePage() {
               letterSpacing: '-0.01em',
             }}
           >
-            Free guides, scripts &amp; tools for gamers
+            All links from my tutorials, in one place
           </p>
           <p
             style={{
@@ -65,9 +65,8 @@ export default function HomePage() {
               margin: '0 auto 32px',
             }}
           >
-            I create tutorials and share free downloads for GTA Online, modding,
-            emulation, and more. All resources on this site are free — just
-            complete a quick task to access them.
+            Every tool, site and resource from my videos collected here. Just
+            complete a task to access any link.
           </p>
           <a
             href="https://www.youtube.com/channel/UCxz-dL1nRU4rAiSn45N7-jA/"
