@@ -9,6 +9,7 @@ export interface TaskOption {
   name: string
   description: string | null
   affiliate_url: string | null
+  task_type: string
   is_recommended: boolean
   sort_order: number
 }
@@ -39,7 +40,7 @@ async function getLinkWithTasks(slug: string): Promise<{
       sort_order,
       is_recommended,
       tasks (
-        id, name, description, affiliate_url, is_active
+        id, name, description, affiliate_url, task_type, is_active
       )
     `)
     .eq('link_id', link.id)
@@ -52,6 +53,7 @@ async function getLinkWithTasks(slug: string): Promise<{
       name: lt.tasks.name,
       description: lt.tasks.description,
       affiliate_url: lt.tasks.affiliate_url,
+      task_type: lt.tasks.task_type ?? 'cpi',
       is_recommended: lt.is_recommended,
       sort_order: lt.sort_order,
     }))

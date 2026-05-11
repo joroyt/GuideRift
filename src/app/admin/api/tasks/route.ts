@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
     affiliate_url = null,
     payout_estimate = 0,
     is_active = true,
+    task_type = 'cpi',
   } = body
 
   if (!name) return NextResponse.json({ error: 'missing_name' }, { status: 400 })
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
   const supabase = getServerClient()
   const { data, error } = await supabase
     .from('tasks')
-    .insert({ name, description, affiliate_url, payout_estimate, is_active })
+    .insert({ name, description, affiliate_url, payout_estimate, is_active, task_type })
     .select()
     .single()
 

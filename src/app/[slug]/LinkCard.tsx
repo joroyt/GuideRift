@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { LinkData, TaskOption } from './page'
 
-type FlowState = 'selecting' | 'waiting' | 'ready' | 'rate_limited' | 'error'
+type FlowState = 'selecting' | 'workink_loading' | 'waiting' | 'ready' | 'rate_limited' | 'error'
 
 function getInitials(name: string): string {
   return name
@@ -129,6 +129,27 @@ export default function LinkCard({
   }
 
   const handleContinue = async () => {
+    if (selectedTask.task_type === 'workink') {
+      setFlowState('workink_loading')
+      try {
+        const res = await fetch('/api/workink/redirect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug: link.slug, taskId: selectedTask.id }),
+        })
+        const json = await res.json()
+        if (json.error || !json.url) {
+          setFlowState('error')
+          return
+        }
+        window.location.href = json.url
+      } catch {
+        setFlowState('error')
+      }
+      return
+    }
+
+    // CPI flow
     const sid = generateSessionId()
     setSessionId(sid)
 
@@ -473,6 +494,31 @@ export default function LinkCard({
                 Completing a task supports free content on this channel.
               </p>
             </>
+          )}
+
+          {/* ── WORKINK LOADING ───────────────────────────────── */}
+          {flowState === 'workink_loading' && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '14px',
+                padding: '12px 0',
+              }}
+            >
+              <Spinner />
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: 'rgba(255,255,255,0.82)',
+                }}
+              >
+                Redirecting...
+              </p>
+            </div>
           )}
 
           {/* ── WAITING ───────────────────────────────────────── */}

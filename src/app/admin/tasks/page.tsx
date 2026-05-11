@@ -7,6 +7,7 @@ interface Task {
   name: string
   description: string | null
   affiliate_url: string | null
+  task_type: string
   payout_estimate: number
   is_active: boolean
   created_at: string
@@ -58,6 +59,7 @@ export default function AdminTasksPage() {
   const [fUrl, setFUrl] = useState('')
   const [fPayout, setFPayout] = useState('0')
   const [fActive, setFActive] = useState(true)
+  const [fTaskType, setFTaskType] = useState('cpi')
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -77,6 +79,7 @@ export default function AdminTasksPage() {
     setFUrl('')
     setFPayout('0')
     setFActive(true)
+    setFTaskType('cpi')
     setFormError('')
     setShowForm(true)
   }
@@ -88,6 +91,7 @@ export default function AdminTasksPage() {
     setFUrl(task.affiliate_url ?? '')
     setFPayout(String(task.payout_estimate))
     setFActive(task.is_active)
+    setFTaskType(task.task_type ?? 'cpi')
     setFormError('')
     setShowForm(true)
   }
@@ -108,9 +112,10 @@ export default function AdminTasksPage() {
     const body = {
       name: fName.trim(),
       description: fDesc.trim() || null,
-      affiliate_url: fUrl.trim() || null,
+      affiliate_url: fTaskType === 'workink' ? null : (fUrl.trim() || null),
       payout_estimate: parseFloat(fPayout) || 0,
       is_active: fActive,
+      task_type: fTaskType,
     }
 
     const res = editingTask
@@ -196,6 +201,17 @@ export default function AdminTasksPage() {
               />
             </div>
             <div>
+              <label style={label}>Type</label>
+              <select
+                style={{ ...inputStyle, appearance: 'none' }}
+                value={fTaskType}
+                onChange={(e) => setFTaskType(e.target.value)}
+              >
+                <option value="cpi">CPI</option>
+                <option value="workink">Watch Ads</option>
+              </select>
+            </div>
+            <div>
               <label style={label}>Description</label>
               <input
                 style={inputStyle}
@@ -204,15 +220,27 @@ export default function AdminTasksPage() {
                 placeholder="Download and install Google Chrome"
               />
             </div>
-            <div>
-              <label style={label}>Affiliate URL</label>
-              <input
-                style={inputStyle}
-                value={fUrl}
-                onChange={(e) => setFUrl(e.target.value)}
-                placeholder="https://affiliate-link.com/..."
-              />
-            </div>
+            {fTaskType === 'workink' ? (
+              <div>
+                <label style={label}>Affiliate URL</label>
+                <input
+                  style={{ ...inputStyle, opacity: 0.4, cursor: 'not-allowed' }}
+                  value=""
+                  disabled
+                  placeholder="Not needed for Watch Ads"
+                />
+              </div>
+            ) : (
+              <div>
+                <label style={label}>Affiliate URL</label>
+                <input
+                  style={inputStyle}
+                  value={fUrl}
+                  onChange={(e) => setFUrl(e.target.value)}
+                  placeholder="https://affiliate-link.com/..."
+                />
+              </div>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <label style={{ ...label, marginBottom: 0 }}>Active</label>
               <div
@@ -308,6 +336,7 @@ export default function AdminTasksPage() {
                 }}
               >
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Name</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left' }}>Type</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Description</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Affiliate URL</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Active</th>
@@ -322,6 +351,23 @@ export default function AdminTasksPage() {
                 >
                   <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.8)' }}>
                     {task.name}
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        ...(task.task_type === 'workink'
+                          ? { color: 'rgba(251,191,36,0.9)', background: 'rgba(251,191,36,0.1)', border: '0.5px solid rgba(251,191,36,0.25)' }
+                          : { color: 'rgba(99,179,237,0.9)', background: 'rgba(99,179,237,0.1)', border: '0.5px solid rgba(99,179,237,0.25)' }),
+                      }}
+                    >
+                      {task.task_type === 'workink' ? 'Watch Ads' : 'CPI'}
+                    </span>
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>
                     {truncate(task.description)}

@@ -6,7 +6,9 @@
       "Bash(npm run *)",
       "Bash(Get-ChildItem -Path \"E:\\\\Projects\\\\link-shortener\" -Recurse -Directory)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(Sort-Object)"
+      "Bash(Sort-Object)",
+      "Bash(Get-ChildItem -Path \"E:\\\\Projects\\\\link-shortener\" -Recurse -Depth 3)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }
