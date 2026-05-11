@@ -2,7 +2,10 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Download',
+  title: {
+    default: 'GuideRift',
+    template: '%s | GuideRift',
+  },
   description: 'Complete a quick task to access your download.',
   robots: {
     index: false,

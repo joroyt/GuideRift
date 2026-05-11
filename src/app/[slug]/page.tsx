@@ -1,8 +1,24 @@
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import { getServerClient } from '@/lib/supabase'
 import LinkCard from './LinkCard'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string }
+}): Promise<Metadata> {
+  const supabase = getServerClient()
+  const { data } = await supabase
+    .from('links')
+    .select('title')
+    .eq('slug', params.slug)
+    .single()
+
+  return { title: data?.title ?? 'Download' }
+}
 
 export interface TaskOption {
   id: string
