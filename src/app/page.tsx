@@ -1,4 +1,4 @@
-import { Youtube } from 'lucide-react'
+import { YoutubeIcon } from 'lucide-react'
 
 export default function HomePage() {
   return (
@@ -77,7 +77,7 @@ export default function HomePage() {
             rel="noopener noreferrer"
             className="yt-btn"
           >
-            <Youtube size={16} />
+            <YoutubeIcon size={16} />
             Visit YouTube Channel
           </a>
         </div>
