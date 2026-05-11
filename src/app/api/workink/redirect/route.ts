@@ -3,7 +3,7 @@ import { getServerClient } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
 
-const WORKINK_LINK_URL = 'https://work.ink/1U29/'
+const WORKINK_LINK_URL = 'https://work.ink/1U29/content-gate'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
