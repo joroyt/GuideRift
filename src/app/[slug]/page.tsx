@@ -69,7 +69,7 @@ async function getLinkWithTasks(slug: string): Promise<{
       name: lt.tasks.name,
       description: lt.tasks.description,
       affiliate_url: lt.tasks.affiliate_url,
-      task_type: lt.tasks.task_type ?? 'cpi',
+      task_type: lt.tasks.task_type ?? 'workink',
       is_recommended: lt.is_recommended,
       sort_order: lt.sort_order,
     }))

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link2, Play } from 'lucide-react'
 import type { LinkData, TaskOption } from './page'
 
-type FlowState = 'selecting' | 'workink_loading' | 'waiting' | 'ready' | 'rate_limited' | 'error'
+type FlowState = 'selecting' | 'workink_loading' | 'error'
 
 function getInitials(name: string): string {
   return name
@@ -13,32 +13,6 @@ function getInitials(name: string): string {
     .map((w) => w[0] ?? '')
     .join('')
     .toUpperCase()
-}
-
-function getClientIp(): string {
-  return ''
-}
-
-function generateSessionId(): string {
-  return crypto.randomUUID()
-}
-
-function CheckCircleIcon() {
-  return (
-    <svg
-      width="48"
-      height="48"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#4ade80"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
-  )
 }
 
 function Spinner() {
@@ -82,9 +56,6 @@ export default function LinkCard({
   const recommended = tasks.find((t) => t.is_recommended) ?? tasks[0]
   const [selectedTask, setSelectedTask] = useState<TaskOption>(recommended)
   const [flowState, setFlowState] = useState<FlowState>('selecting')
-  const [sessionId, setSessionId] = useState<string>('')
-  const [downloadUrl, setDownloadUrl] = useState<string>('')
-  const pollRef = useRef<NodeJS.Timeout | null>(null)
   const analyticsFiredRef = useRef(false)
 
   useEffect(() => {
@@ -93,15 +64,6 @@ export default function LinkCard({
       fireAnalytics('page_view', link.id)
     }
   }, [link.id])
-
-  const stopPolling = useCallback(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current)
-      pollRef.current = null
-    }
-  }, [])
-
-  useEffect(() => () => stopPolling(), [stopPolling])
 
   const handleTaskSelect = (task: TaskOption) => {
     setSelectedTask(task)
@@ -128,71 +90,6 @@ export default function LinkCard({
       }
       return
     }
-
-    // CPI flow
-    const sid = generateSessionId()
-    setSessionId(sid)
-
-    fireAnalytics('task_started', link.id, selectedTask.id)
-
-    const res = await fetch('/api/session/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        session_id: sid,
-        link_id: link.id,
-        task_id: selectedTask.id,
-      }),
-    })
-
-    const json = await res.json()
-
-    if (json.error === 'rate_limited') {
-      setFlowState('rate_limited')
-      return
-    }
-
-    if (!json.ok) {
-      setFlowState('error')
-      return
-    }
-
-    if (selectedTask.affiliate_url) {
-      window.open(selectedTask.affiliate_url, '_blank', 'noopener,noreferrer')
-    }
-
-    setFlowState('waiting')
-
-    pollRef.current = setInterval(async () => {
-      try {
-        const checkRes = await fetch(
-          `/api/session/check?session_id=${encodeURIComponent(sid)}`
-        )
-        const checkJson = await checkRes.json()
-
-        if (checkJson.ready && checkJson.url) {
-          stopPolling()
-          setDownloadUrl(checkJson.url)
-          setFlowState('ready')
-          fireAnalytics('task_completed', link.id, selectedTask.id)
-        }
-      } catch {
-        // keep polling
-      }
-    }, 2000)
-  }
-
-  const handleChooseDifferent = async () => {
-    stopPolling()
-    if (sessionId) {
-      fetch('/api/session/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId }),
-      }).catch(() => {})
-    }
-    setSessionId('')
-    setFlowState('selecting')
   }
 
   return (
@@ -216,12 +113,6 @@ export default function LinkCard({
         }
         .cta-btn:active {
           opacity: 0.76;
-        }
-        .download-btn {
-          transition: opacity 0.15s ease;
-        }
-        .download-btn:hover {
-          opacity: 0.88;
         }
         .text-link {
           background: none;
@@ -500,162 +391,6 @@ export default function LinkCard({
               >
                 Redirecting...
               </p>
-            </div>
-          )}
-
-          {/* ── WAITING ───────────────────────────────────────── */}
-          {flowState === 'waiting' && (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '14px',
-                padding: '12px 0',
-              }}
-            >
-              <Spinner />
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  color: 'rgba(255,255,255,0.82)',
-                }}
-              >
-                Waiting for confirmation...
-              </p>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '12px',
-                  color: 'rgba(255,255,255,0.35)',
-                  textAlign: 'center',
-                  lineHeight: '1.6',
-                }}
-              >
-                Complete the task in the new tab, this page will update automatically.
-              </p>
-              <button
-                className="text-link"
-                onClick={handleChooseDifferent}
-                style={{
-                  marginTop: '8px',
-                  fontSize: '12px',
-                  color: 'rgba(255,255,255,0.35)',
-                  padding: 0,
-                  fontFamily: 'inherit',
-                  textDecoration: 'underline',
-                  textDecorationColor: 'rgba(255,255,255,0.15)',
-                }}
-              >
-                Choose a different task
-              </button>
-            </div>
-          )}
-
-          {/* ── READY ─────────────────────────────────────────── */}
-          {flowState === 'ready' && (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '14px',
-                padding: '12px 0',
-              }}
-            >
-              <CheckCircleIcon />
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  color: 'rgba(255,255,255,0.88)',
-                }}
-              >
-                Confirmed
-              </p>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '12px',
-                  color: 'rgba(255,255,255,0.35)',
-                }}
-              >
-                Your download is ready.
-              </p>
-              <a
-                href={downloadUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="download-btn"
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  background: '#22c55e',
-                  color: '#ffffff',
-                  borderRadius: '12px',
-                  padding: '13px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  textDecoration: 'none',
-                  marginTop: '4px',
-                }}
-              >
-                Download Now
-              </a>
-            </div>
-          )}
-
-          {/* ── RATE LIMITED ──────────────────────────────────── */}
-          {flowState === 'rate_limited' && (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '14px',
-                padding: '12px 0',
-                textAlign: 'center',
-              }}
-            >
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  color: 'rgba(255,255,255,0.82)',
-                }}
-              >
-                Too many attempts
-              </p>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '12px',
-                  color: 'rgba(255,255,255,0.35)',
-                  lineHeight: '1.6',
-                }}
-              >
-                You've made too many requests for this link. Please try again in an hour.
-              </p>
-              <button
-                className="text-link"
-                onClick={() => setFlowState('selecting')}
-                style={{
-                  marginTop: '4px',
-                  fontSize: '12px',
-                  color: 'rgba(255,255,255,0.35)',
-                  padding: 0,
-                  fontFamily: 'inherit',
-                  textDecoration: 'underline',
-                  textDecorationColor: 'rgba(255,255,255,0.15)',
-                }}
-              >
-                Go back
-              </button>
             </div>
           )}
 

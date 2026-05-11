@@ -59,7 +59,7 @@ export default function AdminTasksPage() {
   const [fUrl, setFUrl] = useState('')
   const [fPayout, setFPayout] = useState('0')
   const [fActive, setFActive] = useState(true)
-  const [fTaskType, setFTaskType] = useState('cpi')
+  const [fTaskType, setFTaskType] = useState('workink')
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -79,7 +79,7 @@ export default function AdminTasksPage() {
     setFUrl('')
     setFPayout('0')
     setFActive(true)
-    setFTaskType('cpi')
+    setFTaskType('workink')
     setFormError('')
     setShowForm(true)
   }
@@ -91,7 +91,7 @@ export default function AdminTasksPage() {
     setFUrl(task.affiliate_url ?? '')
     setFPayout(String(task.payout_estimate))
     setFActive(task.is_active)
-    setFTaskType(task.task_type ?? 'cpi')
+    setFTaskType(task.task_type ?? 'workink')
     setFormError('')
     setShowForm(true)
   }
@@ -207,8 +207,8 @@ export default function AdminTasksPage() {
                 value={fTaskType}
                 onChange={(e) => setFTaskType(e.target.value)}
               >
-                <option value="cpi">CPI</option>
                 <option value="workink">Watch Ads</option>
+                <option value="mylead">mylead</option>
               </select>
             </div>
             <div>
@@ -366,7 +366,7 @@ export default function AdminTasksPage() {
                           : { color: 'rgba(99,179,237,0.9)', background: 'rgba(99,179,237,0.1)', border: '0.5px solid rgba(99,179,237,0.25)' }),
                       }}
                     >
-                      {task.task_type === 'workink' ? 'Watch Ads' : 'CPI'}
+                      {task.task_type === 'workink' ? 'Watch Ads' : task.task_type}
                     </span>
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>

@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     affiliate_url = null,
     payout_estimate = 0,
     is_active = true,
-    task_type = 'cpi',
+    task_type = 'workink',
   } = body
 
   if (!name) return NextResponse.json({ error: 'missing_name' }, { status: 400 })

@@ -11,6 +11,7 @@ create table tasks (
   name            text not null,
   description     text,
   affiliate_url   text,
+  task_type       text not null default 'workink' check (task_type in ('workink', 'mylead')),
   payout_estimate numeric default 0,
   is_active       boolean default true,
   created_at      timestamptz default now()

@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
     if (!taskMap[e.task_id]) {
       taskMap[e.task_id] = {
         name: (e.tasks as any)?.name ?? 'Unknown',
-        task_type: (e.tasks as any)?.task_type ?? 'cpi',
+        task_type: (e.tasks as any)?.task_type ?? 'workink',
         shown: 0,
         completed: 0,
       }
