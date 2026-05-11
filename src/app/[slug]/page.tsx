@@ -1,9 +1,14 @@
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import type { Metadata } from 'next'
 import { getServerClient } from '@/lib/supabase'
+import { getCountryFromIp } from '@/lib/geo'
+import { selectTasksForCountry } from '@/lib/tasks'
 import LinkCard from './LinkCard'
 
 export const dynamic = 'force-dynamic'
+
+export type { TaskOption } from '@/lib/tasks'
 
 export async function generateMetadata({
   params,
@@ -20,16 +25,6 @@ export async function generateMetadata({
   return { title: data?.title ?? 'Download' }
 }
 
-export interface TaskOption {
-  id: string
-  name: string
-  description: string | null
-  affiliate_url: string | null
-  task_type: string
-  is_recommended: boolean
-  sort_order: number
-}
-
 export interface LinkData {
   id: string
   title: string
@@ -38,7 +33,7 @@ export interface LinkData {
 
 async function getLinkWithTasks(slug: string): Promise<{
   link: LinkData
-  tasks: TaskOption[]
+  tasks: Awaited<ReturnType<typeof selectTasksForCountry>>
 } | null> {
   const supabase = getServerClient()
 
@@ -50,29 +45,12 @@ async function getLinkWithTasks(slug: string): Promise<{
 
   if (!link || !link.is_active) return null
 
-  const { data: linkTasks } = await supabase
-    .from('link_tasks')
-    .select(`
-      sort_order,
-      is_recommended,
-      tasks (
-        id, name, description, affiliate_url, task_type, is_active
-      )
-    `)
-    .eq('link_id', link.id)
-    .order('sort_order', { ascending: true })
+  const headerList = headers()
+  const xff = headerList.get('x-forwarded-for')
+  const ip = xff?.split(',')[0]?.trim() ?? '127.0.0.1'
+  const country = getCountryFromIp(ip)
 
-  const tasks: TaskOption[] = (linkTasks || [])
-    .filter((lt: any) => lt.tasks?.is_active)
-    .map((lt: any) => ({
-      id: lt.tasks.id,
-      name: lt.tasks.name,
-      description: lt.tasks.description,
-      affiliate_url: lt.tasks.affiliate_url,
-      task_type: lt.tasks.task_type ?? 'workink',
-      is_recommended: lt.is_recommended,
-      sort_order: lt.sort_order,
-    }))
+  const tasks = await selectTasksForCountry(country)
 
   return { link: { id: link.id, title: link.title, slug: link.slug }, tasks }
 }

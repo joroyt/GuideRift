@@ -3,12 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Copy, Check } from 'lucide-react'
 
-interface Task {
-  id: string
-  name: string
-  is_active: boolean
-}
-
 interface Link {
   id: string
   title: string
@@ -16,12 +10,6 @@ interface Link {
   destination_url: string
   is_active: boolean
   created_at: string
-}
-
-interface TaskAssignment {
-  task_id: string
-  sort_order: number
-  is_recommended: boolean
 }
 
 function slugify(s: string) {
@@ -46,10 +34,8 @@ const btnBase: React.CSSProperties = {
 
 export default function AdminLinksPage() {
   const [links, setLinks] = useState<Link[]>([])
-  const [allTasks, setAllTasks] = useState<Task[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editingLink, setEditingLink] = useState<Link | null>(null)
-  const [editLinkTasks, setEditLinkTasks] = useState<TaskAssignment[]>([])
   const [loading, setLoading] = useState(true)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
@@ -58,19 +44,14 @@ export default function AdminLinksPage() {
   const [fSlug, setFSlug] = useState('')
   const [fUrl, setFUrl] = useState('')
   const [fActive, setFActive] = useState(true)
-  const [fTasks, setFTasks] = useState<TaskAssignment[]>([])
   const [slugManual, setSlugManual] = useState(false)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [linksRes, tasksRes] = await Promise.all([
-      fetch('/admin/api/links'),
-      fetch('/admin/api/tasks'),
-    ])
-    setLinks(await linksRes.json())
-    setAllTasks((await tasksRes.json()).filter((t: Task) => t.is_active))
+    const res = await fetch('/admin/api/links')
+    setLinks(await res.json())
     setLoading(false)
   }, [])
 
@@ -82,13 +63,12 @@ export default function AdminLinksPage() {
     setFSlug('')
     setFUrl('')
     setFActive(true)
-    setFTasks([])
     setSlugManual(false)
     setFormError('')
     setShowForm(true)
   }
 
-  const openEdit = async (link: Link) => {
+  const openEdit = (link: Link) => {
     setEditingLink(link)
     setFTitle(link.title)
     setFSlug(link.slug)
@@ -96,15 +76,6 @@ export default function AdminLinksPage() {
     setFActive(link.is_active)
     setSlugManual(true)
     setFormError('')
-
-    // Fetch existing task assignments
-    const res = await fetch(`/admin/api/links/tasks?link_id=${link.id}`)
-    if (res.ok) {
-      const data = await res.json()
-      setFTasks(data)
-    } else {
-      setFTasks([])
-    }
     setShowForm(true)
   }
 
@@ -123,34 +94,6 @@ export default function AdminLinksPage() {
     setSlugManual(true)
   }
 
-  const toggleTaskAssign = (taskId: string) => {
-    setFTasks((prev) => {
-      const exists = prev.find((t) => t.task_id === taskId)
-      if (exists) {
-        return prev.filter((t) => t.task_id !== taskId)
-      }
-      return [...prev, { task_id: taskId, sort_order: prev.length, is_recommended: false }]
-    })
-  }
-
-  const setRecommended = (taskId: string) => {
-    setFTasks((prev) =>
-      prev.map((t) => ({ ...t, is_recommended: t.task_id === taskId }))
-    )
-  }
-
-  const moveTask = (taskId: string, dir: 'up' | 'down') => {
-    setFTasks((prev) => {
-      const idx = prev.findIndex((t) => t.task_id === taskId)
-      if (idx === -1) return prev
-      const newArr = [...prev]
-      const swap = dir === 'up' ? idx - 1 : idx + 1
-      if (swap < 0 || swap >= newArr.length) return prev
-      ;[newArr[idx], newArr[swap]] = [newArr[swap], newArr[idx]]
-      return newArr.map((t, i) => ({ ...t, sort_order: i }))
-    })
-  }
-
   const handleSave = async () => {
     if (!fTitle.trim() || !fSlug.trim() || !fUrl.trim()) {
       setFormError('Title, slug, and destination URL are required.')
@@ -164,7 +107,6 @@ export default function AdminLinksPage() {
       slug: fSlug.trim(),
       destination_url: fUrl.trim(),
       is_active: fActive,
-      tasks: fTasks,
     }
 
     const res = editingLink
@@ -216,11 +158,7 @@ export default function AdminLinksPage() {
     load()
   }
 
-  const assignedTaskObjects = fTasks
-    .map((ft) => ({ ...ft, task: allTasks.find((t) => t.id === ft.task_id) }))
-    .filter((ft) => ft.task)
-
-  const label: React.CSSProperties = {
+  const labelStyle: React.CSSProperties = {
     display: 'block',
     fontSize: '11px',
     fontWeight: 500,
@@ -276,7 +214,7 @@ export default function AdminLinksPage() {
           <div style={{ display: 'grid', gap: '16px' }}>
             {/* Title */}
             <div>
-              <label style={label}>Title</label>
+              <label style={labelStyle}>Title</label>
               <input
                 style={input}
                 value={fTitle}
@@ -286,7 +224,7 @@ export default function AdminLinksPage() {
 
             {/* Slug */}
             <div>
-              <label style={label}>Slug</label>
+              <label style={labelStyle}>Slug</label>
               <div style={{ position: 'relative' }}>
                 <span
                   style={{
@@ -312,7 +250,7 @@ export default function AdminLinksPage() {
 
             {/* Destination URL */}
             <div>
-              <label style={label}>Destination URL</label>
+              <label style={labelStyle}>Destination URL</label>
               <input
                 style={input}
                 value={fUrl}
@@ -322,7 +260,7 @@ export default function AdminLinksPage() {
 
             {/* Active toggle */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <label style={{ ...label, marginBottom: 0 }}>Active</label>
+              <label style={{ ...labelStyle, marginBottom: 0 }}>Active</label>
               <div
                 onClick={() => setFActive(!fActive)}
                 style={{
@@ -349,114 +287,6 @@ export default function AdminLinksPage() {
                   }}
                 />
               </div>
-            </div>
-
-            {/* Task assignment */}
-            <div>
-              <label style={label}>Assign tasks</label>
-              {allTasks.length === 0 ? (
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', margin: '2px 0 10px' }}>
-                  No active tasks. Create tasks first.
-                </p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
-                  {allTasks.map((task) => {
-                    const assigned = fTasks.some((t) => t.task_id === task.id)
-                    return (
-                      <label
-                        key={task.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          padding: '8px 10px',
-                          borderRadius: '8px',
-                          background: '#1a1a1a',
-                          cursor: 'pointer',
-                          fontSize: '13px',
-                          color: assigned ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)',
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={assigned}
-                          onChange={() => toggleTaskAssign(task.id)}
-                          style={{ accentColor: '#63b3ed' }}
-                        />
-                        {task.name}
-                      </label>
-                    )
-                  })}
-                </div>
-              )}
-
-              {/* Order + recommended */}
-              {assignedTaskObjects.length > 0 && (
-                <div>
-                  <p style={{ ...label, marginBottom: '8px' }}>Order &amp; recommended</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {assignedTaskObjects.map((ft, idx) => (
-                      <div
-                        key={ft.task_id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          padding: '7px 10px',
-                          background: '#111111',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          color: 'rgba(255,255,255,0.7)',
-                        }}
-                      >
-                        <span style={{ flex: 1 }}>{ft.task?.name}</span>
-                        <button
-                          onClick={() => moveTask(ft.task_id, 'up')}
-                          disabled={idx === 0}
-                          style={{
-                            ...btnBase,
-                            padding: '3px 7px',
-                            background: 'rgba(255,255,255,0.06)',
-                            color: 'rgba(255,255,255,0.5)',
-                            opacity: idx === 0 ? 0.3 : 1,
-                            cursor: idx === 0 ? 'not-allowed' : 'pointer',
-                          }}
-                        >
-                          ↑
-                        </button>
-                        <button
-                          onClick={() => moveTask(ft.task_id, 'down')}
-                          disabled={idx === assignedTaskObjects.length - 1}
-                          style={{
-                            ...btnBase,
-                            padding: '3px 7px',
-                            background: 'rgba(255,255,255,0.06)',
-                            color: 'rgba(255,255,255,0.5)',
-                            opacity: idx === assignedTaskObjects.length - 1 ? 0.3 : 1,
-                            cursor: idx === assignedTaskObjects.length - 1 ? 'not-allowed' : 'pointer',
-                          }}
-                        >
-                          ↓
-                        </button>
-                        <button
-                          onClick={() => setRecommended(ft.task_id)}
-                          style={{
-                            ...btnBase,
-                            padding: '3px 8px',
-                            background: ft.is_recommended ? 'rgba(99,179,237,0.15)' : 'rgba(255,255,255,0.06)',
-                            color: ft.is_recommended ? 'rgba(99,179,237,0.9)' : 'rgba(255,255,255,0.35)',
-                            border: ft.is_recommended
-                              ? '0.5px solid rgba(99,179,237,0.3)'
-                              : '0.5px solid transparent',
-                          }}
-                        >
-                          ★ {ft.is_recommended ? 'Recommended' : 'Set recommended'}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 

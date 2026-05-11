@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   if (!(await checkAuth(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { title, slug, destination_url, is_active = true, tasks = [] } = body
+  const { title, slug, destination_url, is_active = true } = body
 
   if (!title || !slug || !destination_url) {
     return NextResponse.json({ error: 'missing_fields' }, { status: 400 })
@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
 
   const supabase = getServerClient()
 
-  // Insert link
   const { data: link, error: linkError } = await supabase
     .from('links')
     .insert({ title, slug: slug.trim().toLowerCase(), destination_url, is_active })
@@ -49,17 +48,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: linkError.message }, { status: 500 })
   }
 
-  // Insert link_tasks
-  if (tasks.length > 0) {
-    const linkTaskRows = tasks.map((t: { task_id: string; sort_order: number; is_recommended: boolean }) => ({
-      link_id: link.id,
-      task_id: t.task_id,
-      sort_order: t.sort_order,
-      is_recommended: t.is_recommended,
-    }))
-    await supabase.from('link_tasks').insert(linkTaskRows)
-  }
-
   return NextResponse.json(link, { status: 201 })
 }
 
@@ -67,30 +55,15 @@ export async function PATCH(req: NextRequest) {
   if (!(await checkAuth(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { id, tasks, ...fields } = body
+  const { id, ...fields } = body
 
   if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
 
   const supabase = getServerClient()
 
-  // Update link fields
   if (Object.keys(fields).length > 0) {
     const { error } = await supabase.from('links').update(fields).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  // Replace link_tasks if provided
-  if (Array.isArray(tasks)) {
-    await supabase.from('link_tasks').delete().eq('link_id', id)
-    if (tasks.length > 0) {
-      const rows = tasks.map((t: { task_id: string; sort_order: number; is_recommended: boolean }) => ({
-        link_id: id,
-        task_id: t.task_id,
-        sort_order: t.sort_order,
-        is_recommended: t.is_recommended,
-      }))
-      await supabase.from('link_tasks').insert(rows)
-    }
   }
 
   return NextResponse.json({ ok: true })

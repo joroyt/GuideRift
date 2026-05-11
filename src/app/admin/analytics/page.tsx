@@ -248,6 +248,22 @@ export default function AdminAnalyticsPage() {
                             Watch Ads
                           </span>
                         )}
+                        {row.task_type === 'mylead' && (
+                          <span style={{
+                            marginLeft: '8px',
+                            fontSize: '10px',
+                            fontWeight: 600,
+                            letterSpacing: '0.04em',
+                            textTransform: 'uppercase',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            background: 'rgba(99,179,237,0.1)',
+                            color: 'rgba(99,179,237,0.8)',
+                            border: '0.5px solid rgba(99,179,237,0.25)',
+                          }}>
+                            MyLead
+                          </span>
+                        )}
                       </td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{row.shown.toLocaleString()}</td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{row.completed.toLocaleString()}</td>

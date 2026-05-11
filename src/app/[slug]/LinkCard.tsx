@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Link2, Play } from 'lucide-react'
-import type { LinkData, TaskOption } from './page'
+import type { LinkData } from './page'
+import type { TaskOption } from '@/lib/tasks'
 
-type FlowState = 'selecting' | 'workink_loading' | 'error'
+type FlowState = 'selecting' | 'workink_loading' | 'mylead_waiting' | 'error'
 
 function getInitials(name: string): string {
   return name
@@ -56,6 +57,7 @@ export default function LinkCard({
   const recommended = tasks.find((t) => t.is_recommended) ?? tasks[0]
   const [selectedTask, setSelectedTask] = useState<TaskOption>(recommended)
   const [flowState, setFlowState] = useState<FlowState>('selecting')
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const analyticsFiredRef = useRef(false)
 
   useEffect(() => {
@@ -64,6 +66,26 @@ export default function LinkCard({
       fireAnalytics('page_view', link.id)
     }
   }, [link.id])
+
+  // Poll for mylead completion
+  useEffect(() => {
+    if (flowState !== 'mylead_waiting' || !sessionId) return
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/session/check?session_id=${sessionId}`)
+        const json = await res.json()
+        if (json.status === 'completed' && json.destination_url) {
+          clearInterval(interval)
+          window.location.href = json.destination_url
+        }
+      } catch {
+        // keep polling
+      }
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [flowState, sessionId])
 
   const handleTaskSelect = (task: TaskOption) => {
     setSelectedTask(task)
@@ -85,6 +107,33 @@ export default function LinkCard({
           return
         }
         window.location.href = json.url
+      } catch {
+        setFlowState('error')
+      }
+      return
+    }
+
+    if (selectedTask.task_type === 'mylead') {
+      try {
+        const res = await fetch('/api/session/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ link_id: link.id, task_id: selectedTask.id }),
+        })
+        const json = await res.json()
+        if (!res.ok || !json.session_id) {
+          setFlowState('error')
+          return
+        }
+        const sid: string = json.session_id
+        setSessionId(sid)
+
+        const offerUrl = selectedTask.affiliate_url?.includes('?')
+          ? `${selectedTask.affiliate_url}&ml_sub1=${sid}`
+          : `${selectedTask.affiliate_url}?ml_sub1=${sid}`
+        window.open(offerUrl, '_blank')
+
+        setFlowState('mylead_waiting')
       } catch {
         setFlowState('error')
       }
@@ -390,6 +439,42 @@ export default function LinkCard({
                 }}
               >
                 Redirecting...
+              </p>
+            </div>
+          )}
+
+          {/* ── MYLEAD WAITING ────────────────────────────────── */}
+          {flowState === 'mylead_waiting' && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '14px',
+                padding: '12px 0',
+                textAlign: 'center',
+              }}
+            >
+              <Spinner />
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: 'rgba(255,255,255,0.82)',
+                }}
+              >
+                Waiting for confirmation...
+              </p>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '12px',
+                  color: 'rgba(255,255,255,0.35)',
+                  lineHeight: '1.5',
+                }}
+              >
+                Complete the offer in the new tab. This page will update automatically.
               </p>
             </div>
           )}

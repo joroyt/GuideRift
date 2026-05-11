@@ -11,6 +11,8 @@ interface Task {
   payout_estimate: number
   is_active: boolean
   created_at: string
+  allowed_countries: string[] | null
+  commission_eur: number | null
 }
 
 const btnBase: React.CSSProperties = {
@@ -47,6 +49,12 @@ const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box',
 }
 
+const helperText: React.CSSProperties = {
+  margin: '5px 0 0',
+  fontSize: '11px',
+  color: 'rgba(255,255,255,0.25)',
+}
+
 export default function AdminTasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
@@ -57,9 +65,10 @@ export default function AdminTasksPage() {
   const [fName, setFName] = useState('')
   const [fDesc, setFDesc] = useState('')
   const [fUrl, setFUrl] = useState('')
-  const [fPayout, setFPayout] = useState('0')
   const [fActive, setFActive] = useState(true)
   const [fTaskType, setFTaskType] = useState('workink')
+  const [fCountries, setFCountries] = useState('')
+  const [fCommission, setFCommission] = useState('')
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -77,9 +86,10 @@ export default function AdminTasksPage() {
     setFName('')
     setFDesc('')
     setFUrl('')
-    setFPayout('0')
     setFActive(true)
     setFTaskType('workink')
+    setFCountries('')
+    setFCommission('')
     setFormError('')
     setShowForm(true)
   }
@@ -89,9 +99,10 @@ export default function AdminTasksPage() {
     setFName(task.name)
     setFDesc(task.description ?? '')
     setFUrl(task.affiliate_url ?? '')
-    setFPayout(String(task.payout_estimate))
     setFActive(task.is_active)
     setFTaskType(task.task_type ?? 'workink')
+    setFCountries(task.allowed_countries ? task.allowed_countries.join(', ') : '')
+    setFCommission(task.commission_eur != null ? String(task.commission_eur) : '')
     setFormError('')
     setShowForm(true)
   }
@@ -109,13 +120,25 @@ export default function AdminTasksPage() {
     setSaving(true)
     setFormError('')
 
+    const allowed_countries =
+      fTaskType === 'mylead' && fCountries.trim()
+        ? fCountries.split(',').map((c) => c.trim().toUpperCase()).filter(Boolean)
+        : null
+
+    const commission_eur =
+      fTaskType === 'mylead' && fCommission.trim()
+        ? parseFloat(fCommission) || null
+        : null
+
     const body = {
       name: fName.trim(),
       description: fDesc.trim() || null,
       affiliate_url: fTaskType === 'workink' ? null : (fUrl.trim() || null),
-      payout_estimate: parseFloat(fPayout) || 0,
+      payout_estimate: 0,
       is_active: fActive,
       task_type: fTaskType,
+      allowed_countries,
+      commission_eur,
     }
 
     const res = editingTask
@@ -208,7 +231,7 @@ export default function AdminTasksPage() {
                 onChange={(e) => setFTaskType(e.target.value)}
               >
                 <option value="workink">Watch Ads</option>
-                <option value="mylead">mylead</option>
+                <option value="mylead">MyLead</option>
               </select>
             </div>
             <div>
@@ -220,6 +243,7 @@ export default function AdminTasksPage() {
                 placeholder="Download and install Google Chrome"
               />
             </div>
+
             {fTaskType === 'workink' ? (
               <div>
                 <label style={label}>Affiliate URL</label>
@@ -231,16 +255,42 @@ export default function AdminTasksPage() {
                 />
               </div>
             ) : (
-              <div>
-                <label style={label}>Affiliate URL</label>
-                <input
-                  style={inputStyle}
-                  value={fUrl}
-                  onChange={(e) => setFUrl(e.target.value)}
-                  placeholder="https://affiliate-link.com/..."
-                />
-              </div>
+              <>
+                <div>
+                  <label style={label}>Affiliate URL</label>
+                  <input
+                    style={inputStyle}
+                    value={fUrl}
+                    onChange={(e) => setFUrl(e.target.value)}
+                    placeholder="https://mylead.global/aff/..."
+                  />
+                  <p style={helperText}>Enter offer URL without tracking parameters — ?ml_sub1 will be added automatically.</p>
+                </div>
+                <div>
+                  <label style={label}>Allowed Countries</label>
+                  <input
+                    style={inputStyle}
+                    value={fCountries}
+                    onChange={(e) => setFCountries(e.target.value)}
+                    placeholder="NL, BE, DE"
+                  />
+                  <p style={helperText}>Leave empty for all countries. Comma-separated ISO codes (e.g. NL, BE, DE).</p>
+                </div>
+                <div>
+                  <label style={label}>Commission (EUR)</label>
+                  <input
+                    style={inputStyle}
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={fCommission}
+                    onChange={(e) => setFCommission(e.target.value)}
+                    placeholder="1.32"
+                  />
+                </div>
+              </>
             )}
+
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <label style={{ ...label, marginBottom: 0 }}>Active</label>
               <div
@@ -337,8 +387,8 @@ export default function AdminTasksPage() {
               >
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Name</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Type</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left' }}>Countries</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Description</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left' }}>Affiliate URL</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Active</th>
                 <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
               </tr>
@@ -366,14 +416,22 @@ export default function AdminTasksPage() {
                           : { color: 'rgba(99,179,237,0.9)', background: 'rgba(99,179,237,0.1)', border: '0.5px solid rgba(99,179,237,0.25)' }),
                       }}
                     >
-                      {task.task_type === 'workink' ? 'Watch Ads' : task.task_type}
+                      {task.task_type === 'workink'
+                        ? 'Watch Ads'
+                        : task.commission_eur != null
+                          ? `MyLead • €${Number(task.commission_eur).toFixed(2)}`
+                          : 'MyLead'}
                     </span>
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>
-                    {truncate(task.description)}
+                    {task.task_type === 'mylead'
+                      ? (task.allowed_countries && task.allowed_countries.length > 0
+                          ? task.allowed_countries.join(', ')
+                          : 'Global')
+                      : '—'}
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>
-                    {truncate(task.affiliate_url, 40)}
+                    {truncate(task.description)}
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     <div
