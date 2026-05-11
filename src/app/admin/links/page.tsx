@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { Copy, Check } from 'lucide-react'
 
 interface Task {
   id: string
@@ -50,6 +51,7 @@ export default function AdminLinksPage() {
   const [editingLink, setEditingLink] = useState<Link | null>(null)
   const [editLinkTasks, setEditLinkTasks] = useState<TaskAssignment[]>([])
   const [loading, setLoading] = useState(true)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
   // Form state
   const [fTitle, setFTitle] = useState('')
@@ -200,6 +202,12 @@ export default function AdminLinksPage() {
       body: JSON.stringify({ id: link.id, is_active: !link.is_active }),
     })
     load()
+  }
+
+  const handleCopy = (link: Link) => {
+    navigator.clipboard.writeText(`${window.location.origin}/${link.slug}`)
+    setCopiedId(link.id)
+    setTimeout(() => setCopiedId(null), 2000)
   }
 
   const handleDelete = async (id: string) => {
@@ -564,6 +572,20 @@ export default function AdminLinksPage() {
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={() => handleCopy(link)}
+                        title="Copy link"
+                        style={{
+                          ...btnBase,
+                          background: 'rgba(255,255,255,0.06)',
+                          color: copiedId === link.id ? 'rgba(74,222,128,0.8)' : 'rgba(255,255,255,0.55)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        {copiedId === link.id ? <Check size={13} /> : <Copy size={13} />}
+                      </button>
                       <button
                         onClick={() => openEdit(link)}
                         style={{
