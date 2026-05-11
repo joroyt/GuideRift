@@ -1,6 +1,7 @@
-import geoip from 'geoip-lite'
+import { headers } from 'next/headers'
 
-export function getCountryFromIp(ip: string): string | null {
-  const geo = geoip.lookup(ip)
-  return geo?.country ?? null
+export function getCountryFromRequest(): string | null {
+  const headersList = headers()
+  const country = headersList.get('x-vercel-ip-country')
+  return country ?? null
 }

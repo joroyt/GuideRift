@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation'
-import { headers } from 'next/headers'
 import type { Metadata } from 'next'
 import { getServerClient } from '@/lib/supabase'
-import { getCountryFromIp } from '@/lib/geo'
+import { getCountryFromRequest } from '@/lib/geo'
 import { selectTasksForCountry } from '@/lib/tasks'
 import LinkCard from './LinkCard'
 
@@ -45,10 +44,7 @@ async function getLinkWithTasks(slug: string): Promise<{
 
   if (!link || !link.is_active) return null
 
-  const headerList = headers()
-  const xff = headerList.get('x-forwarded-for')
-  const ip = xff?.split(',')[0]?.trim() ?? '127.0.0.1'
-  const country = getCountryFromIp(ip)
+  const country = getCountryFromRequest()
 
   const tasks = await selectTasksForCountry(country)
 

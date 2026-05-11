@@ -16,7 +16,8 @@
       "Bash(ffmpeg -i favicon.png -vf scale=192:192 public/android-chrome-192x192.png -y)",
       "Bash(xargs grep -l \"enum\\\\|type.*Task\")",
       "Bash(Remove-Item *)",
-      "Bash(Get-ChildItem -Path \"E:\\\\Projects\\\\GuideRift\" -Recurse -Directory)"
+      "Bash(Get-ChildItem -Path \"E:\\\\Projects\\\\GuideRift\" -Recurse -Directory)",
+      "Bash(npm uninstall *)"
     ]
   }
 }
