@@ -53,9 +53,9 @@ export default function LinkCard({
   const [sessionId, setSessionId] = useState<string | null>(null)
   const analyticsFiredRef = useRef(false)
 
-  // 60-second cooldown on Watch Ads when paid offers are available
-  const hasPaidTasks = tasks.some((t) => t.task_type !== 'workink')
-  const [countdown, setCountdown] = useState(hasPaidTasks ? 60 : 0)
+  // 60-second cooldown on Watch Ads when any other offer type is visible
+  const hasOtherOffers = tasks.some((t) => t.task_type !== 'workink')
+  const [countdown, setCountdown] = useState(hasOtherOffers ? 60 : 0)
 
   useEffect(() => {
     if (!analyticsFiredRef.current) {
@@ -315,7 +315,7 @@ export default function LinkCard({
                           borderRadius: '14px',
                           padding: '12px 14px',
                           display: 'flex',
-                          alignItems: 'center',
+                          alignItems: 'flex-start',
                           gap: '12px',
                           opacity: isLocked ? 0.45 : 1,
                           cursor: isLocked ? 'not-allowed' : 'pointer',
@@ -334,6 +334,7 @@ export default function LinkCard({
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
+                            marginTop: '1px',
                           }}
                         >
                           {renderIcon(
@@ -364,9 +365,7 @@ export default function LinkCard({
                                 margin: '2px 0 0',
                                 fontSize: '12px',
                                 color: 'rgba(255,255,255,0.35)',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
+                                lineHeight: '1.45',
                               }}
                             >
                               {task.description}
@@ -382,14 +381,15 @@ export default function LinkCard({
                             alignItems: 'flex-end',
                             gap: '4px',
                             flexShrink: 0,
+                            marginTop: '1px',
                           }}
                         >
                           {isLocked ? (
                             <span
                               style={{
                                 fontSize: '11px',
-                                fontWeight: 600,
-                                color: 'rgba(251,191,36,0.75)',
+                                fontWeight: 400,
+                                color: 'rgba(255,255,255,0.3)',
                                 fontVariantNumeric: 'tabular-nums',
                                 minWidth: '28px',
                                 textAlign: 'right',
@@ -433,41 +433,6 @@ export default function LinkCard({
                         </div>
                       </div>
 
-                      {/* Progress bar + hint — only while locked */}
-                      {isLocked && (
-                        <>
-                          <div
-                            style={{
-                              marginTop: '5px',
-                              height: '2px',
-                              background: 'rgba(255,255,255,0.05)',
-                              borderRadius: '2px',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            <div
-                              style={{
-                                height: '100%',
-                                width: `${(countdown / 60) * 100}%`,
-                                background: 'rgba(251,191,36,0.5)',
-                                borderRadius: '2px',
-                                transition: 'width 1s linear',
-                              }}
-                            />
-                          </div>
-                          <p
-                            style={{
-                              margin: '5px 0 0',
-                              fontSize: '10px',
-                              color: 'rgba(255,255,255,0.2)',
-                              textAlign: 'center',
-                              letterSpacing: '0.02em',
-                            }}
-                          >
-                            Complete an offer above to skip the wait
-                          </p>
-                        </>
-                      )}
                     </div>
                   )
                 })}
