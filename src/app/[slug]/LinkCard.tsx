@@ -268,7 +268,7 @@ export default function LinkCard({
                       color: 'rgba(255,255,255,0.35)',
                     }}
                   >
-                    Complete one task to continue
+                    Complete one task to access the link
                   </p>
                 </div>
               </div>
