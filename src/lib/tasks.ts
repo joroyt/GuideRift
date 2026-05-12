@@ -15,13 +15,13 @@ export interface TaskOption {
 export async function selectTasksForCountry(country: string | null): Promise<TaskOption[]> {
   const supabase = getServerClient()
 
-  const { data: myleadTasks } = await supabase
+  const { data: paidTasks } = await supabase
     .from('tasks')
     .select('id, name, description, affiliate_url, task_type, allowed_countries, commission_eur')
-    .eq('task_type', 'mylead')
+    .in('task_type', ['mylead', 'cpagrip'])
     .eq('is_active', true)
 
-  const filtered = ((myleadTasks ?? []) as any[]).filter((task) => {
+  const filtered = ((paidTasks ?? []) as any[]).filter((task) => {
     if (!task.allowed_countries || task.allowed_countries.length === 0) return true
     if (!country) return false
     return task.allowed_countries.includes(country)

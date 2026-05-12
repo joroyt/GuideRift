@@ -13,6 +13,7 @@ interface Task {
   created_at: string
   allowed_countries: string[] | null
   commission_eur: number | null
+  cpagrip_password: string | null
 }
 
 const btnBase: React.CSSProperties = {
@@ -69,6 +70,7 @@ export default function AdminTasksPage() {
   const [fTaskType, setFTaskType] = useState('workink')
   const [fCountries, setFCountries] = useState('')
   const [fCommission, setFCommission] = useState('')
+  const [fCpagripPassword, setFCpagripPassword] = useState('')
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -90,6 +92,7 @@ export default function AdminTasksPage() {
     setFTaskType('workink')
     setFCountries('')
     setFCommission('')
+    setFCpagripPassword('')
     setFormError('')
     setShowForm(true)
   }
@@ -103,6 +106,7 @@ export default function AdminTasksPage() {
     setFTaskType(task.task_type ?? 'workink')
     setFCountries(task.allowed_countries ? task.allowed_countries.join(', ') : '')
     setFCommission(task.commission_eur != null ? String(task.commission_eur) : '')
+    setFCpagripPassword(task.cpagrip_password ?? '')
     setFormError('')
     setShowForm(true)
   }
@@ -120,13 +124,15 @@ export default function AdminTasksPage() {
     setSaving(true)
     setFormError('')
 
+    const isPaidType = fTaskType === 'mylead' || fTaskType === 'cpagrip'
+
     const allowed_countries =
-      fTaskType === 'mylead' && fCountries.trim()
+      isPaidType && fCountries.trim()
         ? fCountries.split(',').map((c) => c.trim().toUpperCase()).filter(Boolean)
         : null
 
     const commission_eur =
-      fTaskType === 'mylead' && fCommission.trim()
+      isPaidType && fCommission.trim()
         ? parseFloat(fCommission) || null
         : null
 
@@ -139,6 +145,7 @@ export default function AdminTasksPage() {
       task_type: fTaskType,
       allowed_countries,
       commission_eur,
+      cpagrip_password: fTaskType === 'cpagrip' ? (fCpagripPassword.trim() || null) : null,
     }
 
     const res = editingTask
@@ -232,6 +239,7 @@ export default function AdminTasksPage() {
               >
                 <option value="workink">Watch Ads</option>
                 <option value="mylead">MyLead</option>
+                <option value="cpagrip">CPAGrip</option>
               </select>
             </div>
             <div>
@@ -262,9 +270,13 @@ export default function AdminTasksPage() {
                     style={inputStyle}
                     value={fUrl}
                     onChange={(e) => setFUrl(e.target.value)}
-                    placeholder="https://mylead.global/aff/..."
+                    placeholder={fTaskType === 'cpagrip' ? 'https://singingfiles.com/show.php?l=0&u=...' : 'https://mylead.global/aff/...'}
                   />
-                  <p style={helperText}>Enter offer URL without tracking parameters — ?ml_sub1 will be added automatically.</p>
+                  <p style={helperText}>
+                    {fTaskType === 'cpagrip'
+                      ? 'Enter offer URL without tracking_id — &tracking_id= will be added automatically.'
+                      : 'Enter offer URL without tracking parameters — ?ml_sub1 will be added automatically.'}
+                  </p>
                 </div>
                 <div>
                   <label style={label}>Allowed Countries</label>
@@ -288,6 +300,18 @@ export default function AdminTasksPage() {
                     placeholder="1.32"
                   />
                 </div>
+                {fTaskType === 'cpagrip' && (
+                  <div>
+                    <label style={label}>Postback Password (Optional)</label>
+                    <input
+                      style={inputStyle}
+                      value={fCpagripPassword}
+                      onChange={(e) => setFCpagripPassword(e.target.value)}
+                      placeholder="mySecretPassword"
+                    />
+                    <p style={helperText}>Must match the password set in your CPAGrip Global Postback settings.</p>
+                  </div>
+                )}
               </>
             )}
 
@@ -413,18 +437,24 @@ export default function AdminTasksPage() {
                         borderRadius: '4px',
                         ...(task.task_type === 'workink'
                           ? { color: 'rgba(251,191,36,0.9)', background: 'rgba(251,191,36,0.1)', border: '0.5px solid rgba(251,191,36,0.25)' }
-                          : { color: 'rgba(99,179,237,0.9)', background: 'rgba(99,179,237,0.1)', border: '0.5px solid rgba(99,179,237,0.25)' }),
+                          : task.task_type === 'cpagrip'
+                            ? { color: 'rgba(52,211,153,0.9)', background: 'rgba(52,211,153,0.1)', border: '0.5px solid rgba(52,211,153,0.25)' }
+                            : { color: 'rgba(99,179,237,0.9)', background: 'rgba(99,179,237,0.1)', border: '0.5px solid rgba(99,179,237,0.25)' }),
                       }}
                     >
                       {task.task_type === 'workink'
                         ? 'Watch Ads'
-                        : task.commission_eur != null
-                          ? `MyLead • €${Number(task.commission_eur).toFixed(2)}`
-                          : 'MyLead'}
+                        : task.task_type === 'cpagrip'
+                          ? task.commission_eur != null
+                            ? `CPAGrip • €${Number(task.commission_eur).toFixed(2)}`
+                            : 'CPAGrip'
+                          : task.commission_eur != null
+                            ? `MyLead • €${Number(task.commission_eur).toFixed(2)}`
+                            : 'MyLead'}
                     </span>
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>
-                    {task.task_type === 'mylead'
+                    {task.task_type === 'mylead' || task.task_type === 'cpagrip'
                       ? (task.allowed_countries && task.allowed_countries.length > 0
                           ? task.allowed_countries.join(', ')
                           : 'Global')

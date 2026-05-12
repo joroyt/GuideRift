@@ -5,7 +5,7 @@ import { Link2, Play } from 'lucide-react'
 import type { LinkData } from './page'
 import type { TaskOption } from '@/lib/tasks'
 
-type FlowState = 'selecting' | 'workink_loading' | 'mylead_waiting' | 'error'
+type FlowState = 'selecting' | 'workink_loading' | 'mylead_waiting' | 'cpagrip_waiting' | 'error'
 
 function getInitials(name: string): string {
   return name
@@ -67,9 +67,9 @@ export default function LinkCard({
     }
   }, [link.id])
 
-  // Poll for mylead completion
+  // Poll for mylead / cpagrip completion
   useEffect(() => {
-    if (flowState !== 'mylead_waiting' || !sessionId) return
+    if ((flowState !== 'mylead_waiting' && flowState !== 'cpagrip_waiting') || !sessionId) return
 
     const interval = setInterval(async () => {
       try {
@@ -134,6 +134,31 @@ export default function LinkCard({
         window.open(offerUrl, '_blank')
 
         setFlowState('mylead_waiting')
+      } catch {
+        setFlowState('error')
+      }
+      return
+    }
+
+    if (selectedTask.task_type === 'cpagrip') {
+      try {
+        const res = await fetch('/api/session/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ link_id: link.id, task_id: selectedTask.id }),
+        })
+        const json = await res.json()
+        if (!res.ok || !json.session_id) {
+          setFlowState('error')
+          return
+        }
+        const sid: string = json.session_id
+        setSessionId(sid)
+
+        const offerUrl = `${selectedTask.affiliate_url}&tracking_id=${sid}`
+        window.open(offerUrl, '_blank')
+
+        setFlowState('cpagrip_waiting')
       } catch {
         setFlowState('error')
       }
@@ -443,8 +468,8 @@ export default function LinkCard({
             </div>
           )}
 
-          {/* ── MYLEAD WAITING ────────────────────────────────── */}
-          {flowState === 'mylead_waiting' && (
+          {/* ── MYLEAD / CPAGRIP WAITING ─────────────────────── */}
+          {(flowState === 'mylead_waiting' || flowState === 'cpagrip_waiting') && (
             <div
               style={{
                 display: 'flex',

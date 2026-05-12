@@ -17,7 +17,8 @@
       "Bash(xargs grep -l \"enum\\\\|type.*Task\")",
       "Bash(Remove-Item *)",
       "Bash(Get-ChildItem -Path \"E:\\\\Projects\\\\GuideRift\" -Recurse -Directory)",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(Get-ChildItem -Path \"E:\\\\Projects\\\\GuideRift\\\\src\" -Recurse -File)"
     ]
   }
 }
