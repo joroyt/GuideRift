@@ -224,36 +224,36 @@ export default function LinkCard({
             background: '#111111',
             border: '0.5px solid rgba(255,255,255,0.08)',
             borderRadius: '20px',
-            maxWidth: '480px',
+            maxWidth: '552px',
             width: '100%',
-            padding: '2rem',
+            padding: '2.25rem',
           }}
         >
           {/* ── SELECTING ─────────────────────────────────────── */}
           {flowState === 'selecting' && (
             <>
               {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '24px' }}>
                 <div
                   style={{
-                    width: '40px',
-                    height: '40px',
+                    width: '46px',
+                    height: '46px',
                     background: '#1a1a1a',
                     border: '0.5px solid rgba(255,255,255,0.08)',
-                    borderRadius: '10px',
+                    borderRadius: '12px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
                   }}
                 >
-                  <Link2 size={20} color="rgba(255,255,255,0.55)" strokeWidth={1.5} />
+                  <Link2 size={23} color="rgba(255,255,255,0.55)" strokeWidth={1.5} />
                 </div>
                 <div>
                   <p
                     style={{
                       margin: 0,
-                      fontSize: '15px',
+                      fontSize: '17px',
                       fontWeight: 500,
                       color: 'rgba(255,255,255,0.88)',
                       lineHeight: '1.3',
@@ -264,7 +264,7 @@ export default function LinkCard({
                   <p
                     style={{
                       margin: '3px 0 0',
-                      fontSize: '12px',
+                      fontSize: '14px',
                       color: 'rgba(255,255,255,0.35)',
                     }}
                   >
@@ -278,15 +278,15 @@ export default function LinkCard({
                 style={{
                   height: '0.5px',
                   background: 'rgba(255,255,255,0.07)',
-                  marginBottom: '20px',
+                  marginBottom: '24px',
                 }}
               />
 
               {/* Section label */}
               <p
                 style={{
-                  margin: '0 0 12px',
-                  fontSize: '11px',
+                  margin: '0 0 14px',
+                  fontSize: '13px',
                   fontWeight: 500,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
@@ -297,7 +297,7 @@ export default function LinkCard({
               </p>
 
               {/* Task list */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
                 {tasks.map((task) => {
                   const isSelected = selectedTask.id === task.id
                   const isWorkink = task.task_type === 'workink'
@@ -313,10 +313,10 @@ export default function LinkCard({
                             ? '0.5px solid rgba(99,179,237,0.5)'
                             : '0.5px solid rgba(255,255,255,0.07)',
                           borderRadius: '14px',
-                          padding: '12px 14px',
+                          padding: '14px 16px',
                           display: 'flex',
                           alignItems: 'flex-start',
-                          gap: '12px',
+                          gap: '14px',
                           opacity: isLocked ? 0.45 : 1,
                           cursor: isLocked ? 'not-allowed' : 'pointer',
                           transition: 'opacity 0.4s ease',
@@ -325,11 +325,11 @@ export default function LinkCard({
                         {/* Logo block */}
                         <div
                           style={{
-                            width: '32px',
-                            height: '32px',
+                            width: '37px',
+                            height: '37px',
                             background: '#1e1e1e',
                             border: '0.5px solid rgba(255,255,255,0.07)',
-                            borderRadius: '8px',
+                            borderRadius: '9px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -340,7 +340,7 @@ export default function LinkCard({
                           {renderIcon(
                             task.icon,
                             task.task_type === 'workink' ? 'Play' : 'Download',
-                            { size: 14, color: 'rgba(255,255,255,0.5)', strokeWidth: 1.5 }
+                            { size: 16, color: 'rgba(255,255,255,0.5)', strokeWidth: 1.5 }
                           )}
                         </div>
 
@@ -349,7 +349,7 @@ export default function LinkCard({
                           <p
                             style={{
                               margin: 0,
-                              fontSize: '13px',
+                              fontSize: '15px',
                               fontWeight: 500,
                               color: 'rgba(255,255,255,0.85)',
                               whiteSpace: 'nowrap',
@@ -363,7 +363,7 @@ export default function LinkCard({
                             <p
                               style={{
                                 margin: '2px 0 0',
-                                fontSize: '12px',
+                                fontSize: '14px',
                                 color: 'rgba(255,255,255,0.35)',
                                 lineHeight: '1.45',
                               }}
@@ -387,7 +387,7 @@ export default function LinkCard({
                           {isLocked ? (
                             <span
                               style={{
-                                fontSize: '11px',
+                                fontSize: '13px',
                                 fontWeight: 400,
                                 color: 'rgba(255,255,255,0.3)',
                                 fontVariantNumeric: 'tabular-nums',
@@ -418,11 +418,11 @@ export default function LinkCard({
                               )}
                               <div
                                 style={{
-                                  width: '16px',
-                                  height: '16px',
+                                  width: '18px',
+                                  height: '18px',
                                   borderRadius: '50%',
                                   border: isSelected
-                                    ? '4.5px solid rgba(99,179,237,0.9)'
+                                    ? '5px solid rgba(99,179,237,0.9)'
                                     : '1.5px solid rgba(255,255,255,0.2)',
                                   background: 'transparent',
                                   flexShrink: 0,
@@ -451,12 +451,12 @@ export default function LinkCard({
                       background: isWorkinkLocked ? 'rgba(255,255,255,0.05)' : '#ffffff',
                       color: isWorkinkLocked ? 'rgba(255,255,255,0.22)' : '#0a0a0a',
                       border: isWorkinkLocked ? '0.5px solid rgba(255,255,255,0.07)' : 'none',
-                      borderRadius: '12px',
-                      padding: '13px',
-                      fontSize: '13px',
+                      borderRadius: '14px',
+                      padding: '15px',
+                      fontSize: '15px',
                       fontWeight: 600,
                       cursor: isWorkinkLocked ? 'not-allowed' : 'pointer',
-                      marginBottom: '16px',
+                      marginBottom: '18px',
                       fontFamily: 'inherit',
                       fontVariantNumeric: 'tabular-nums',
                     }}
@@ -470,7 +470,7 @@ export default function LinkCard({
               <p
                 style={{
                   margin: 0,
-                  fontSize: '11px',
+                  fontSize: '13px',
                   color: 'rgba(255,255,255,0.25)',
                   textAlign: 'center',
                   lineHeight: '1.5',

@@ -19,12 +19,14 @@ export async function GET(req: NextRequest) {
     ''
 
   const supabase = getServerClient()
-  supabase
-    .from('analytics_events')
-    .insert({ link_id: linkId, task_id: taskId, event_type: 'task_completed', ip_address: ip })
-    .then(({ error }) => {
-      if (error) console.error('[workink/complete] Analytics error:', error)
-    })
+  if (!req.cookies.get('admin_token')?.value) {
+    supabase
+      .from('analytics_events')
+      .insert({ link_id: linkId, task_id: taskId, event_type: 'task_completed', ip_address: ip })
+      .then(({ error }) => {
+        if (error) console.error('[workink/complete] Analytics error:', error)
+      })
+  }
 
   return NextResponse.redirect(decodeURIComponent(dest), { status: 302 })
 }

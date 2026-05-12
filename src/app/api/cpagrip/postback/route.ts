@@ -47,17 +47,19 @@ export async function POST(req: NextRequest) {
     req.headers.get('x-real-ip') ??
     ''
 
-  supabase
-    .from('analytics_events')
-    .insert({
-      link_id: session.link_id,
-      task_id: session.task_id,
-      event_type: 'task_completed',
-      ip_address: ip,
-    })
-    .then(({ error }) => {
-      if (error) console.error('[cpagrip/postback] Analytics error:', error)
-    })
+  if (!req.cookies.get('admin_token')?.value) {
+    supabase
+      .from('analytics_events')
+      .insert({
+        link_id: session.link_id,
+        task_id: session.task_id,
+        event_type: 'task_completed',
+        ip_address: ip,
+      })
+      .then(({ error }) => {
+        if (error) console.error('[cpagrip/postback] Analytics error:', error)
+      })
+  }
 
   return new NextResponse('OK', { status: 200 })
 }

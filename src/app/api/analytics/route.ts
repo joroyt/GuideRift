@@ -28,6 +28,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
+    if (req.cookies.get('admin_token')?.value) {
+      return NextResponse.json({ ok: true })
+    }
+
     const supabase = getServerClient()
     await supabase.from('analytics_events').insert({
       event_type,

@@ -50,12 +50,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  supabase
-    .from('analytics_events')
-    .insert({ link_id, task_id, event_type: 'task_started', ip_address: ip })
-    .then(({ error: e }) => {
-      if (e) console.error('[session/create] Analytics error:', e)
-    })
+  if (!req.cookies.get('admin_token')?.value) {
+    supabase
+      .from('analytics_events')
+      .insert({ link_id, task_id, event_type: 'task_started', ip_address: ip })
+      .then(({ error: e }) => {
+        if (e) console.error('[session/create] Analytics error:', e)
+      })
+  }
 
   return NextResponse.json({ session_id }, { status: 201 })
 }
