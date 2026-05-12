@@ -1,20 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Link2, Play } from 'lucide-react'
+import { Link2 } from 'lucide-react'
 import type { LinkData } from './page'
 import type { TaskOption } from '@/lib/tasks'
+import { renderIcon } from '@/lib/icons'
 
 type FlowState = 'selecting' | 'workink_loading' | 'mylead_waiting' | 'cpagrip_waiting' | 'error'
 
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0] ?? '')
-    .join('')
-    .toUpperCase()
-}
 
 function Spinner() {
   return (
@@ -319,15 +312,13 @@ export default function LinkCard({
                           alignItems: 'center',
                           justifyContent: 'center',
                           flexShrink: 0,
-                          fontSize: '11px',
-                          fontWeight: 600,
-                          color: 'rgba(255,255,255,0.5)',
-                          letterSpacing: '-0.02em',
                         }}
                       >
-                        {task.task_type === 'workink'
-                          ? <Play size={14} color="rgba(255,255,255,0.5)" strokeWidth={1.5} fill="rgba(255,255,255,0.5)" />
-                          : getInitials(task.name)}
+                        {renderIcon(
+                          task.icon,
+                          task.task_type === 'workink' ? 'Play' : 'Download',
+                          { size: 14, color: 'rgba(255,255,255,0.5)', strokeWidth: 1.5 }
+                        )}
                       </div>
 
                       {/* Text */}

@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
     allowed_countries = null,
     commission_eur = null,
     cpagrip_password = null,
+    icon = null,
   } = body
 
   if (!name) return NextResponse.json({ error: 'missing_name' }, { status: 400 })
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
   const supabase = getServerClient()
   const { data, error } = await supabase
     .from('tasks')
-    .insert({ name, description, affiliate_url, payout_estimate, is_active, task_type, allowed_countries, commission_eur, cpagrip_password })
+    .insert({ name, description, affiliate_url, payout_estimate, is_active, task_type, allowed_countries, commission_eur, cpagrip_password, icon })
     .select()
     .single()
 

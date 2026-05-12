@@ -6,6 +6,7 @@ export interface TaskOption {
   description: string | null
   affiliate_url: string | null
   task_type: string
+  icon: string | null
   is_recommended: boolean
   sort_order: number
   allowed_countries: string[] | null
@@ -17,7 +18,7 @@ export async function selectTasksForCountry(country: string | null): Promise<Tas
 
   const { data: paidTasks } = await supabase
     .from('tasks')
-    .select('id, name, description, affiliate_url, task_type, allowed_countries, commission_eur')
+    .select('id, name, description, affiliate_url, task_type, icon, allowed_countries, commission_eur')
     .in('task_type', ['mylead', 'cpagrip'])
     .eq('is_active', true)
 
@@ -33,7 +34,7 @@ export async function selectTasksForCountry(country: string | null): Promise<Tas
 
   const { data: workinkTasks } = await supabase
     .from('tasks')
-    .select('id, name, description, affiliate_url, task_type')
+    .select('id, name, description, affiliate_url, task_type, icon')
     .eq('task_type', 'workink')
     .eq('is_active', true)
     .limit(1)
@@ -44,6 +45,7 @@ export async function selectTasksForCountry(country: string | null): Promise<Tas
     description: task.description,
     affiliate_url: task.affiliate_url,
     task_type: task.task_type,
+    icon: task.icon ?? null,
     is_recommended: idx === 0,
     sort_order: idx,
     allowed_countries: task.allowed_countries ?? null,
@@ -58,6 +60,7 @@ export async function selectTasksForCountry(country: string | null): Promise<Tas
       description: workinkTask.description,
       affiliate_url: workinkTask.affiliate_url,
       task_type: workinkTask.task_type,
+      icon: workinkTask.icon ?? null,
       is_recommended: false,
       sort_order: result.length,
       allowed_countries: null,

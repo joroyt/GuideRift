@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import IconPicker from '@/components/admin/IconPicker'
 
 interface Task {
   id: string
@@ -8,6 +9,7 @@ interface Task {
   description: string | null
   affiliate_url: string | null
   task_type: string
+  icon: string | null
   payout_estimate: number
   is_active: boolean
   created_at: string
@@ -56,6 +58,10 @@ const helperText: React.CSSProperties = {
   color: 'rgba(255,255,255,0.25)',
 }
 
+function defaultIconForType(type: string): string {
+  return type === 'workink' ? 'Play' : 'Download'
+}
+
 export default function AdminTasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,6 +77,7 @@ export default function AdminTasksPage() {
   const [fCountries, setFCountries] = useState('')
   const [fCommission, setFCommission] = useState('')
   const [fCpagripPassword, setFCpagripPassword] = useState('')
+  const [fIcon, setFIcon] = useState('Play')
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -93,6 +100,7 @@ export default function AdminTasksPage() {
     setFCountries('')
     setFCommission('')
     setFCpagripPassword('')
+    setFIcon('Play')
     setFormError('')
     setShowForm(true)
   }
@@ -107,6 +115,7 @@ export default function AdminTasksPage() {
     setFCountries(task.allowed_countries ? task.allowed_countries.join(', ') : '')
     setFCommission(task.commission_eur != null ? String(task.commission_eur) : '')
     setFCpagripPassword(task.cpagrip_password ?? '')
+    setFIcon(task.icon ?? defaultIconForType(task.task_type))
     setFormError('')
     setShowForm(true)
   }
@@ -146,6 +155,7 @@ export default function AdminTasksPage() {
       allowed_countries,
       commission_eur,
       cpagrip_password: fTaskType === 'cpagrip' ? (fCpagripPassword.trim() || null) : null,
+      icon: fIcon || defaultIconForType(fTaskType),
     }
 
     const res = editingTask
@@ -235,7 +245,10 @@ export default function AdminTasksPage() {
               <select
                 style={{ ...inputStyle, appearance: 'none' }}
                 value={fTaskType}
-                onChange={(e) => setFTaskType(e.target.value)}
+                onChange={(e) => {
+                  setFTaskType(e.target.value)
+                  setFIcon(defaultIconForType(e.target.value))
+                }}
               >
                 <option value="workink">Watch Ads</option>
                 <option value="mylead">MyLead</option>
@@ -250,6 +263,10 @@ export default function AdminTasksPage() {
                 onChange={(e) => setFDesc(e.target.value)}
                 placeholder="Download and install Google Chrome"
               />
+            </div>
+            <div>
+              <label style={label}>Task Icon</label>
+              <IconPicker value={fIcon} onChange={setFIcon} />
             </div>
 
             {fTaskType === 'workink' ? (
