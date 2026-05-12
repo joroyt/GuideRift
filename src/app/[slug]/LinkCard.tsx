@@ -53,12 +53,29 @@ export default function LinkCard({
   const [sessionId, setSessionId] = useState<string | null>(null)
   const analyticsFiredRef = useRef(false)
 
+  // 60-second cooldown on Watch Ads when paid offers are available
+  const hasPaidTasks = tasks.some((t) => t.task_type !== 'workink')
+  const [countdown, setCountdown] = useState(hasPaidTasks ? 60 : 0)
+
   useEffect(() => {
     if (!analyticsFiredRef.current) {
       analyticsFiredRef.current = true
       fireAnalytics('page_view', link.id)
     }
   }, [link.id])
+
+  // Countdown timer — runs once on mount, only when paid tasks are present
+  useEffect(() => {
+    if (countdown === 0) return
+    const id = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) { clearInterval(id); return 0 }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Poll for mylead / cpagrip completion
   useEffect(() => {
@@ -283,141 +300,206 @@ export default function LinkCard({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
                 {tasks.map((task) => {
                   const isSelected = selectedTask.id === task.id
+                  const isWorkink = task.task_type === 'workink'
+                  const isLocked = isWorkink && countdown > 0
                   return (
-                    <div
-                      key={task.id}
-                      className="task-card"
-                      onClick={() => handleTaskSelect(task)}
-                      style={{
-                        background: isSelected ? 'rgba(99,179,237,0.04)' : '#161616',
-                        border: isSelected
-                          ? '0.5px solid rgba(99,179,237,0.5)'
-                          : '0.5px solid rgba(255,255,255,0.07)',
-                        borderRadius: '14px',
-                        padding: '12px 14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                      }}
-                    >
-                      {/* Logo block */}
+                    <div key={task.id}>
                       <div
+                        className={isLocked ? undefined : 'task-card'}
+                        onClick={() => { if (!isLocked) handleTaskSelect(task) }}
                         style={{
-                          width: '32px',
-                          height: '32px',
-                          background: '#1e1e1e',
-                          border: '0.5px solid rgba(255,255,255,0.07)',
-                          borderRadius: '8px',
+                          background: isSelected ? 'rgba(99,179,237,0.04)' : '#161616',
+                          border: isSelected
+                            ? '0.5px solid rgba(99,179,237,0.5)'
+                            : '0.5px solid rgba(255,255,255,0.07)',
+                          borderRadius: '14px',
+                          padding: '12px 14px',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
+                          gap: '12px',
+                          opacity: isLocked ? 0.45 : 1,
+                          cursor: isLocked ? 'not-allowed' : 'pointer',
+                          transition: 'opacity 0.4s ease',
                         }}
                       >
-                        {renderIcon(
-                          task.icon,
-                          task.task_type === 'workink' ? 'Play' : 'Download',
-                          { size: 14, color: 'rgba(255,255,255,0.5)', strokeWidth: 1.5 }
-                        )}
-                      </div>
-
-                      {/* Text */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p
+                        {/* Logo block */}
+                        <div
                           style={{
-                            margin: 0,
-                            fontSize: '13px',
-                            fontWeight: 500,
-                            color: 'rgba(255,255,255,0.85)',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
+                            width: '32px',
+                            height: '32px',
+                            background: '#1e1e1e',
+                            border: '0.5px solid rgba(255,255,255,0.07)',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
                           }}
                         >
-                          {task.name}
-                        </p>
-                        {task.description && (
+                          {renderIcon(
+                            task.icon,
+                            task.task_type === 'workink' ? 'Play' : 'Download',
+                            { size: 14, color: 'rgba(255,255,255,0.5)', strokeWidth: 1.5 }
+                          )}
+                        </div>
+
+                        {/* Text */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
                           <p
                             style={{
-                              margin: '2px 0 0',
-                              fontSize: '12px',
-                              color: 'rgba(255,255,255,0.35)',
+                              margin: 0,
+                              fontSize: '13px',
+                              fontWeight: 500,
+                              color: 'rgba(255,255,255,0.85)',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                             }}
                           >
-                            {task.description}
+                            {task.name}
                           </p>
-                        )}
-                      </div>
+                          {task.description && (
+                            <p
+                              style={{
+                                margin: '2px 0 0',
+                                fontSize: '12px',
+                                color: 'rgba(255,255,255,0.35)',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {task.description}
+                            </p>
+                          )}
+                        </div>
 
-                      {/* Right: recommended badge + radio */}
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'flex-end',
-                          gap: '4px',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {task.is_recommended && (
-                          <span
-                            style={{
-                              fontSize: '9px',
-                              fontWeight: 600,
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.05em',
-                              color: 'rgba(99,179,237,0.9)',
-                              background: 'rgba(99,179,237,0.1)',
-                              border: '0.5px solid rgba(99,179,237,0.25)',
-                              borderRadius: '4px',
-                              padding: '2px 5px',
-                            }}
-                          >
-                            Recommended
-                          </span>
-                        )}
-                        {/* Radio */}
+                        {/* Right side */}
                         <div
                           style={{
-                            width: '16px',
-                            height: '16px',
-                            borderRadius: '50%',
-                            border: isSelected
-                              ? '4.5px solid rgba(99,179,237,0.9)'
-                              : '1.5px solid rgba(255,255,255,0.2)',
-                            background: 'transparent',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-end',
+                            gap: '4px',
                             flexShrink: 0,
                           }}
-                        />
+                        >
+                          {isLocked ? (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                color: 'rgba(251,191,36,0.75)',
+                                fontVariantNumeric: 'tabular-nums',
+                                minWidth: '28px',
+                                textAlign: 'right',
+                              }}
+                            >
+                              {countdown}s
+                            </span>
+                          ) : (
+                            <>
+                              {task.is_recommended && (
+                                <span
+                                  style={{
+                                    fontSize: '9px',
+                                    fontWeight: 600,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em',
+                                    color: 'rgba(99,179,237,0.9)',
+                                    background: 'rgba(99,179,237,0.1)',
+                                    border: '0.5px solid rgba(99,179,237,0.25)',
+                                    borderRadius: '4px',
+                                    padding: '2px 5px',
+                                  }}
+                                >
+                                  Recommended
+                                </span>
+                              )}
+                              <div
+                                style={{
+                                  width: '16px',
+                                  height: '16px',
+                                  borderRadius: '50%',
+                                  border: isSelected
+                                    ? '4.5px solid rgba(99,179,237,0.9)'
+                                    : '1.5px solid rgba(255,255,255,0.2)',
+                                  background: 'transparent',
+                                  flexShrink: 0,
+                                }}
+                              />
+                            </>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Progress bar + hint — only while locked */}
+                      {isLocked && (
+                        <>
+                          <div
+                            style={{
+                              marginTop: '5px',
+                              height: '2px',
+                              background: 'rgba(255,255,255,0.05)',
+                              borderRadius: '2px',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <div
+                              style={{
+                                height: '100%',
+                                width: `${(countdown / 60) * 100}%`,
+                                background: 'rgba(251,191,36,0.5)',
+                                borderRadius: '2px',
+                                transition: 'width 1s linear',
+                              }}
+                            />
+                          </div>
+                          <p
+                            style={{
+                              margin: '5px 0 0',
+                              fontSize: '10px',
+                              color: 'rgba(255,255,255,0.2)',
+                              textAlign: 'center',
+                              letterSpacing: '0.02em',
+                            }}
+                          >
+                            Complete an offer above to skip the wait
+                          </p>
+                        </>
+                      )}
                     </div>
                   )
                 })}
               </div>
 
               {/* CTA */}
-              <button
-                className="cta-btn"
-                onClick={handleContinue}
-                style={{
-                  width: '100%',
-                  background: '#ffffff',
-                  color: '#0a0a0a',
-                  border: 'none',
-                  borderRadius: '12px',
-                  padding: '13px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  marginBottom: '16px',
-                  fontFamily: 'inherit',
-                }}
-              >
-                Continue with {selectedTask.name}
-              </button>
+              {(() => {
+                const isWorkinkLocked = selectedTask.task_type === 'workink' && countdown > 0
+                return (
+                  <button
+                    className={isWorkinkLocked ? undefined : 'cta-btn'}
+                    onClick={isWorkinkLocked ? undefined : handleContinue}
+                    disabled={isWorkinkLocked}
+                    style={{
+                      width: '100%',
+                      background: isWorkinkLocked ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                      color: isWorkinkLocked ? 'rgba(255,255,255,0.22)' : '#0a0a0a',
+                      border: isWorkinkLocked ? '0.5px solid rgba(255,255,255,0.07)' : 'none',
+                      borderRadius: '12px',
+                      padding: '13px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: isWorkinkLocked ? 'not-allowed' : 'pointer',
+                      marginBottom: '16px',
+                      fontFamily: 'inherit',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {isWorkinkLocked ? `Available in ${countdown}s` : `Continue with ${selectedTask.name}`}
+                  </button>
+                )
+              })()}
 
               {/* Footer note */}
               <p
