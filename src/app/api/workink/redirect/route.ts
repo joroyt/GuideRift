@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   const { data: link } = await supabase
     .from('links')
-    .select('id, destination_url, is_active')
+    .select('id, is_active')
     .eq('slug', slug)
     .single()
 
@@ -25,9 +25,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'link_not_found' }, { status: 404 })
   }
 
+  const { data: firstDestLink } = await supabase
+    .from('destination_links')
+    .select('url')
+    .eq('link_id', link.id)
+    .order('sort_order', { ascending: true })
+    .limit(1)
+    .single()
+
+  if (!firstDestLink?.url) {
+    return NextResponse.json({ error: 'no_destination' }, { status: 404 })
+  }
+
   let sr: string
   try {
-    const completionUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/workink/complete?linkId=${link.id}&taskId=${taskId}&dest=${encodeURIComponent(link.destination_url)}`
+    const completionUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/workink/complete?linkId=${link.id}&taskId=${taskId}&dest=${encodeURIComponent(firstDestLink.url)}`
     const workinkRes = await fetch(
       `https://work.ink/_api/v2/override?destination=${encodeURIComponent(completionUrl)}`
     )

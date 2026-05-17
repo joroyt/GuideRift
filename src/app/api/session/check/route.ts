@@ -24,13 +24,16 @@ export async function GET(req: NextRequest) {
   }
 
   if (session.status === 'completed') {
-    const { data: link } = await supabase
-      .from('links')
-      .select('destination_url')
-      .eq('id', session.link_id)
-      .single()
+    const { data: destinationLinks } = await supabase
+      .from('destination_links')
+      .select('label, url')
+      .eq('link_id', session.link_id)
+      .order('sort_order', { ascending: true })
 
-    return NextResponse.json({ status: 'completed', destination_url: link?.destination_url ?? null })
+    return NextResponse.json({
+      status: 'completed',
+      destinationLinks: destinationLinks ?? [],
+    })
   }
 
   return NextResponse.json({ status: 'pending' })

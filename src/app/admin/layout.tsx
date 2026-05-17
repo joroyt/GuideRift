@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
 const NAV = [
-  { href: '/admin/links', label: 'Links' },
+  { href: '/admin/links', label: 'Pages' },
   { href: '/admin/tasks', label: 'Tasks' },
   { href: '/admin/analytics', label: 'Analytics' },
 ]

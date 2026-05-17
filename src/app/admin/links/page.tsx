@@ -1,15 +1,22 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Copy, Check } from 'lucide-react'
+import { Copy, Check, Trash2, Plus } from 'lucide-react'
+
+interface DestinationLink {
+  id?: string
+  label: string
+  url: string
+  sort_order: number
+}
 
 interface Link {
   id: string
   title: string
   slug: string
-  destination_url: string
   is_active: boolean
   created_at: string
+  destination_links?: DestinationLink[]
 }
 
 function slugify(s: string) {
@@ -42,7 +49,7 @@ export default function AdminLinksPage() {
   // Form state
   const [fTitle, setFTitle] = useState('')
   const [fSlug, setFSlug] = useState('')
-  const [fUrl, setFUrl] = useState('')
+  const [fLinks, setFLinks] = useState<{ label: string; url: string }[]>([{ label: 'Download', url: '' }])
   const [fActive, setFActive] = useState(true)
   const [slugManual, setSlugManual] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -61,7 +68,7 @@ export default function AdminLinksPage() {
     setEditingLink(null)
     setFTitle('')
     setFSlug('')
-    setFUrl('')
+    setFLinks([{ label: 'Download', url: '' }])
     setFActive(true)
     setSlugManual(false)
     setFormError('')
@@ -72,7 +79,14 @@ export default function AdminLinksPage() {
     setEditingLink(link)
     setFTitle(link.title)
     setFSlug(link.slug)
-    setFUrl(link.destination_url)
+    const dl = link.destination_links
+    setFLinks(
+      dl && dl.length > 0
+        ? [...dl]
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((d) => ({ label: d.label, url: d.url }))
+        : [{ label: 'Download', url: '' }]
+    )
     setFActive(link.is_active)
     setSlugManual(true)
     setFormError('')
@@ -94,9 +108,22 @@ export default function AdminLinksPage() {
     setSlugManual(true)
   }
 
+  const addDestLink = () => setFLinks([...fLinks, { label: '', url: '' }])
+  const removeDestLink = (i: number) => setFLinks(fLinks.filter((_, idx) => idx !== i))
+  const updateDestLink = (i: number, field: 'label' | 'url', value: string) =>
+    setFLinks(fLinks.map((l, idx) => (idx === i ? { ...l, [field]: value } : l)))
+
   const handleSave = async () => {
-    if (!fTitle.trim() || !fSlug.trim() || !fUrl.trim()) {
-      setFormError('Title, slug, and destination URL are required.')
+    if (!fTitle.trim() || !fSlug.trim()) {
+      setFormError('Title and slug are required.')
+      return
+    }
+    if (fLinks.length === 0) {
+      setFormError('At least one destination link is required.')
+      return
+    }
+    if (fLinks.some((l) => !l.label.trim() || !l.url.trim())) {
+      setFormError('All destination links must have a label and URL.')
       return
     }
     setSaving(true)
@@ -105,8 +132,12 @@ export default function AdminLinksPage() {
     const body = {
       title: fTitle.trim(),
       slug: fSlug.trim(),
-      destination_url: fUrl.trim(),
       is_active: fActive,
+      destinationLinks: fLinks.map((l, i) => ({
+        label: l.label.trim(),
+        url: l.url.trim(),
+        sort_order: i,
+      })),
     }
 
     const res = editingLink
@@ -153,7 +184,7 @@ export default function AdminLinksPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this link?')) return
+    if (!confirm('Delete this page?')) return
     await fetch(`/admin/api/links?id=${id}`, { method: 'DELETE' })
     load()
   }
@@ -168,7 +199,7 @@ export default function AdminLinksPage() {
     marginBottom: '6px',
   }
 
-  const input: React.CSSProperties = {
+  const inputStyle: React.CSSProperties = {
     width: '100%',
     background: '#1a1a1a',
     border: '0.5px solid rgba(255,255,255,0.1)',
@@ -186,13 +217,13 @@ export default function AdminLinksPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
         <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: 'rgba(255,255,255,0.88)' }}>
-          Links
+          Pages
         </h1>
         <button
           onClick={openNew}
           style={{ ...btnBase, background: '#ffffff', color: '#0a0a0a', padding: '8px 16px', fontSize: '13px' }}
         >
-          New link
+          New page
         </button>
       </div>
 
@@ -208,23 +239,23 @@ export default function AdminLinksPage() {
           }}
         >
           <h2 style={{ margin: '0 0 20px', fontSize: '14px', fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>
-            {editingLink ? 'Edit link' : 'New link'}
+            {editingLink ? 'Edit page' : 'New page'}
           </h2>
 
           <div style={{ display: 'grid', gap: '16px' }}>
-            {/* Title */}
+            {/* Page Title */}
             <div>
-              <label style={labelStyle}>Title</label>
+              <label style={labelStyle}>Page Title</label>
               <input
-                style={input}
+                style={inputStyle}
                 value={fTitle}
                 onChange={(e) => handleTitleChange(e.target.value)}
               />
             </div>
 
-            {/* Slug */}
+            {/* Page Slug */}
             <div>
-              <label style={labelStyle}>Slug</label>
+              <label style={labelStyle}>Page Slug</label>
               <div style={{ position: 'relative' }}>
                 <span
                   style={{
@@ -241,21 +272,66 @@ export default function AdminLinksPage() {
                   /
                 </span>
                 <input
-                  style={{ ...input, paddingLeft: '20px' }}
+                  style={{ ...inputStyle, paddingLeft: '20px' }}
                   value={fSlug}
                   onChange={(e) => handleSlugChange(e.target.value)}
                 />
               </div>
             </div>
 
-            {/* Destination URL */}
+            {/* Destination Links */}
             <div>
-              <label style={labelStyle}>Destination URL</label>
-              <input
-                style={input}
-                value={fUrl}
-                onChange={(e) => setFUrl(e.target.value)}
-              />
+              <label style={labelStyle}>Destination Links</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {fLinks.map((lnk, i) => (
+                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <input
+                      style={{ ...inputStyle, width: '140px', flexShrink: 0 }}
+                      value={lnk.label}
+                      placeholder="Label"
+                      onChange={(e) => updateDestLink(i, 'label', e.target.value)}
+                    />
+                    <input
+                      style={{ ...inputStyle, flex: 1 }}
+                      value={lnk.url}
+                      placeholder="https://..."
+                      onChange={(e) => updateDestLink(i, 'url', e.target.value)}
+                    />
+                    {fLinks.length > 1 && (
+                      <button
+                        onClick={() => removeDestLink(i)}
+                        style={{
+                          ...btnBase,
+                          background: 'rgba(248,113,113,0.08)',
+                          color: 'rgba(248,113,113,0.6)',
+                          padding: '7px 8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={addDestLink}
+                style={{
+                  ...btnBase,
+                  background: 'transparent',
+                  color: 'rgba(255,255,255,0.4)',
+                  border: '0.5px solid rgba(255,255,255,0.1)',
+                  marginTop: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <Plus size={12} />
+                Add Link
+              </button>
             </div>
 
             {/* Active toggle */}
@@ -309,7 +385,7 @@ export default function AdminLinksPage() {
                 cursor: saving ? 'not-allowed' : 'pointer',
               }}
             >
-              {saving ? 'Saving...' : editingLink ? 'Save changes' : 'Create link'}
+              {saving ? 'Saving...' : editingLink ? 'Save changes' : 'Create page'}
             </button>
             <button
               onClick={closeForm}
@@ -327,11 +403,11 @@ export default function AdminLinksPage() {
         </div>
       )}
 
-      {/* Links table */}
+      {/* Pages table */}
       {loading ? (
         <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>Loading...</p>
       ) : links.length === 0 ? (
-        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>No links yet.</p>
+        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>No pages yet.</p>
       ) : (
         <div
           style={{
@@ -404,7 +480,7 @@ export default function AdminLinksPage() {
                     <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
                       <button
                         onClick={() => handleCopy(link)}
-                        title="Copy link"
+                        title="Copy URL"
                         style={{
                           ...btnBase,
                           background: 'rgba(255,255,255,0.06)',

@@ -22,7 +22,8 @@
       "PowerShell(Get-Content \"E:\\\\Projects\\\\GuideRift\\\\node_modules\\\\lucide-react\\\\dynamic.d.ts\" | Select-String -Pattern \"export declare const \\(Coins|Euro|Medal|Chrome|ImageIcon|Image[^I]|Gamepad2|Gamepad[^2]\\)\" | ForEach-Object { $_.Line.Substring\\(0, [Math]::Min\\(80, $_.Line.Length\\)\\) } | Select-Object -First 20)",
       "PowerShell(Get-Content \"E:\\\\Projects\\\\GuideRift\\\\node_modules\\\\lucide-react\\\\dynamic.d.ts\" | Select-String \"Coins|Euro|Medal|Chrome|ImageIcon| Image \" | ForEach-Object { $_.Line.Substring\\(0, 80\\) } | Select-Object -First 20)",
       "PowerShell(Get-Content \"E:\\\\Projects\\\\GuideRift\\\\node_modules\\\\lucide-react\\\\dynamic.d.ts\" | Select-String \"^declare const \\(Gamepad|Image\\)\" | Select-Object -First 10 | ForEach-Object { $_.Line })",
-      "PowerShell(Get-Content \"E:\\\\Projects\\\\GuideRift\\\\node_modules\\\\lucide-react\\\\dynamic.d.ts\" | Select-String \"^declare const \\(Chrome|Map[^a-z]|Link[^a-z]\\)\" | Select-Object -First 10 | ForEach-Object { $_.Line })"
+      "PowerShell(Get-Content \"E:\\\\Projects\\\\GuideRift\\\\node_modules\\\\lucide-react\\\\dynamic.d.ts\" | Select-String \"^declare const \\(Chrome|Map[^a-z]|Link[^a-z]\\)\" | Select-Object -First 10 | ForEach-Object { $_.Line })",
+      "PowerShell(Get-ChildItem *)"
     ]
   }
 }

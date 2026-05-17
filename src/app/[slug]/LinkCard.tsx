@@ -1,13 +1,20 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Link2 } from 'lucide-react'
+import { Link2, ExternalLink } from 'lucide-react'
 import type { LinkData } from './page'
 import type { TaskOption } from '@/lib/tasks'
 import { renderIcon } from '@/lib/icons'
 
-type FlowState = 'selecting' | 'workink_loading' | 'mylead_waiting' | 'cpagrip_waiting' | 'error'
+type FlowState =
+  | 'selecting'
+  | 'workink_loading'
+  | 'mylead_waiting'
+  | 'cpagrip_waiting'
+  | 'links_revealed'
+  | 'error'
 
+type DestinationLink = { label: string; url: string }
 
 function Spinner() {
   return (
@@ -51,6 +58,7 @@ export default function LinkCard({
   const [selectedTask, setSelectedTask] = useState<TaskOption>(recommended)
   const [flowState, setFlowState] = useState<FlowState>('selecting')
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [destinationLinks, setDestinationLinks] = useState<DestinationLink[]>([])
   const analyticsFiredRef = useRef(false)
 
   // 60-second cooldown on Watch Ads when any other offer type is visible
@@ -85,9 +93,15 @@ export default function LinkCard({
       try {
         const res = await fetch(`/api/session/check?session_id=${sessionId}`)
         const json = await res.json()
-        if (json.status === 'completed' && json.destination_url) {
+        if (json.status === 'completed') {
           clearInterval(interval)
-          window.location.href = json.destination_url
+          const links: DestinationLink[] = json.destinationLinks ?? []
+          if (links.length === 1) {
+            window.location.href = links[0].url
+          } else if (links.length > 1) {
+            setDestinationLinks(links)
+            setFlowState('links_revealed')
+          }
         }
       } catch {
         // keep polling
@@ -182,6 +196,10 @@ export default function LinkCard({
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         .task-card {
           cursor: pointer;
           transition: border-color 0.15s ease, background 0.15s ease;
@@ -206,6 +224,13 @@ export default function LinkCard({
         }
         .text-link:hover {
           color: rgba(255,255,255,0.6) !important;
+        }
+        .dest-link-btn {
+          transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .dest-link-btn:hover {
+          border-color: rgba(255,255,255,0.18) !important;
+          background: #1a1a1a !important;
         }
       `}</style>
 
@@ -538,6 +563,102 @@ export default function LinkCard({
                 }}
               >
                 Complete the offer in the new tab. This page will update automatically.
+              </p>
+            </div>
+          )}
+
+          {/* ── LINKS REVEALED ────────────────────────────────── */}
+          {flowState === 'links_revealed' && (
+            <div style={{ animation: 'fadeIn 0.3s ease' }}>
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '20px' }}>
+                <div
+                  style={{
+                    width: '46px',
+                    height: '46px',
+                    background: 'rgba(74,222,128,0.07)',
+                    border: '0.5px solid rgba(74,222,128,0.18)',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <ExternalLink size={20} color="rgba(74,222,128,0.7)" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '17px',
+                      fontWeight: 600,
+                      color: 'rgba(255,255,255,0.88)',
+                    }}
+                  >
+                    Your Links
+                  </p>
+                  <p
+                    style={{
+                      margin: '3px 0 0',
+                      fontSize: '14px',
+                      color: 'rgba(255,255,255,0.35)',
+                    }}
+                  >
+                    All links are now unlocked.
+                  </p>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div
+                style={{
+                  height: '0.5px',
+                  background: 'rgba(255,255,255,0.07)',
+                  marginBottom: '16px',
+                }}
+              />
+
+              {/* Link buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {destinationLinks.map((dl, i) => (
+                  <a
+                    key={i}
+                    href={dl.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="dest-link-btn"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      background: '#161616',
+                      border: '0.5px solid rgba(255,255,255,0.09)',
+                      borderRadius: '14px',
+                      padding: '16px 18px',
+                      color: 'rgba(255,255,255,0.85)',
+                      textDecoration: 'none',
+                      fontSize: '15px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <span>{dl.label}</span>
+                    <ExternalLink size={16} color="rgba(255,255,255,0.4)" strokeWidth={1.5} />
+                  </a>
+                ))}
+              </div>
+
+              {/* Footer */}
+              <p
+                style={{
+                  marginTop: '16px',
+                  marginBottom: 0,
+                  fontSize: '13px',
+                  color: 'rgba(255,255,255,0.25)',
+                  textAlign: 'center',
+                }}
+              >
+                Click any link to open it in a new tab.
               </p>
             </div>
           )}
