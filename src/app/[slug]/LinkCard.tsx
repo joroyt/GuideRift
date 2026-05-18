@@ -449,7 +449,7 @@ export default function LinkCard({
                               {task.description}
                             </p>
                           )}
-                          {task.estimated_time && !(isWorkink && isLocked) && (
+                          {task.estimated_time && (
                             <span
                               style={{
                                 display: 'inline-flex',
@@ -462,6 +462,7 @@ export default function LinkCard({
                                 padding: '2px 8px',
                                 fontSize: '11px',
                                 color: 'rgba(255,255,255,0.35)',
+                                visibility: isWorkink && isLocked ? 'hidden' : 'visible',
                               }}
                             >
                               <Clock size={10} strokeWidth={1.5} />
