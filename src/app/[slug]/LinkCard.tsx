@@ -415,7 +415,13 @@ export default function LinkCard({
                             marginTop: '1px',
                           }}
                         >
-                          {renderIcon(
+                          {task.custom_icon_url ? (
+                            <img
+                              src={task.custom_icon_url}
+                              alt={task.name}
+                              style={{ width: '28px', height: '28px', objectFit: 'contain' }}
+                            />
+                          ) : renderIcon(
                             task.icon,
                             task.task_type === 'workink' ? 'Play' : 'Download',
                             { size: 16, color: 'rgba(255,255,255,0.5)', strokeWidth: 1.5 }

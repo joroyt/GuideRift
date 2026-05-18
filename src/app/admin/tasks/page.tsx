@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import IconPicker from '@/components/admin/IconPicker'
+import { supabaseBrowser } from '@/lib/supabase-browser'
 
 interface Task {
   id: string
@@ -17,6 +18,7 @@ interface Task {
   commission_eur: number | null
   cpagrip_password: string | null
   estimated_time: string | null
+  custom_icon_url: string | null
 }
 
 const btnBase: React.CSSProperties = {
@@ -80,6 +82,10 @@ export default function AdminTasksPage() {
   const [fCpagripPassword, setFCpagripPassword] = useState('')
   const [fIcon, setFIcon] = useState('Play')
   const [fEstimatedTime, setFEstimatedTime] = useState('')
+  const [fCustomIconUrl, setFCustomIconUrl] = useState<string | null>(null)
+  const [fCustomIconFile, setFCustomIconFile] = useState<File | null>(null)
+  const [fCustomIconPreview, setFCustomIconPreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -104,6 +110,9 @@ export default function AdminTasksPage() {
     setFCpagripPassword('')
     setFIcon('Play')
     setFEstimatedTime('')
+    setFCustomIconUrl(null)
+    setFCustomIconFile(null)
+    setFCustomIconPreview(null)
     setFormError('')
     setShowForm(true)
   }
@@ -120,6 +129,9 @@ export default function AdminTasksPage() {
     setFCpagripPassword(task.cpagrip_password ?? '')
     setFIcon(task.icon ?? defaultIconForType(task.task_type))
     setFEstimatedTime(task.estimated_time ?? '')
+    setFCustomIconUrl(task.custom_icon_url ?? null)
+    setFCustomIconFile(null)
+    setFCustomIconPreview(null)
     setFormError('')
     setShowForm(true)
   }
@@ -149,7 +161,25 @@ export default function AdminTasksPage() {
         ? parseFloat(fCommission) || null
         : null
 
-    const body = {
+    let resolvedCustomIconUrl: string | null | undefined = undefined
+    if (fCustomIconFile) {
+      const { data: uploadData, error: uploadError } = await supabaseBrowser.storage
+        .from('task-icons')
+        .upload(`${Date.now()}-${fCustomIconFile.name}`, fCustomIconFile, { upsert: true })
+      if (uploadError) {
+        setFormError('Icon upload failed: ' + uploadError.message)
+        setSaving(false)
+        return
+      }
+      const { data: { publicUrl } } = supabaseBrowser.storage
+        .from('task-icons')
+        .getPublicUrl(uploadData.path)
+      resolvedCustomIconUrl = publicUrl
+    } else if (fCustomIconUrl === null && editingTask?.custom_icon_url) {
+      resolvedCustomIconUrl = null
+    }
+
+    const body: Record<string, unknown> = {
       name: fName.trim(),
       description: fDesc.trim() || null,
       affiliate_url: fTaskType === 'workink' ? null : (fUrl.trim() || null),
@@ -161,6 +191,9 @@ export default function AdminTasksPage() {
       cpagrip_password: fTaskType === 'cpagrip' ? (fCpagripPassword.trim() || null) : null,
       icon: fIcon || defaultIconForType(fTaskType),
       estimated_time: fEstimatedTime.trim() || null,
+    }
+    if (resolvedCustomIconUrl !== undefined) {
+      body.custom_icon_url = resolvedCustomIconUrl
     }
 
     const res = editingTask
@@ -272,6 +305,45 @@ export default function AdminTasksPage() {
             <div>
               <label style={label}>Task Icon</label>
               <IconPicker value={fIcon} onChange={setFIcon} />
+            </div>
+
+            <div>
+              <label style={label}>Custom Icon (optional)</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                {(fCustomIconPreview ?? fCustomIconUrl) && (
+                  <>
+                    <img
+                      src={fCustomIconPreview ?? fCustomIconUrl!}
+                      alt="Custom icon preview"
+                      style={{ width: '24px', height: '24px', objectFit: 'contain', borderRadius: '4px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFCustomIconUrl(null)
+                        setFCustomIconFile(null)
+                        setFCustomIconPreview(null)
+                        if (fileInputRef.current) fileInputRef.current.value = ''
+                      }}
+                      style={{ ...btnBase, background: 'rgba(248,113,113,0.08)', color: 'rgba(248,113,113,0.8)', padding: '4px 10px' }}
+                    >
+                      Remove
+                    </button>
+                  </>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png"
+                  style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] ?? null
+                    setFCustomIconFile(file)
+                    setFCustomIconPreview(file ? URL.createObjectURL(file) : null)
+                  }}
+                />
+              </div>
+              <p style={helperText}>Upload a PNG to override the icon above. Recommended: 64×64px.</p>
             </div>
 
             {fTaskType === 'workink' ? (
