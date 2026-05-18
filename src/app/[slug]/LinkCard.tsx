@@ -339,7 +339,7 @@ export default function LinkCard({
                     {destinationLinkCount >= 2 ? (
                       <>
                         {'Complete one task to unlock '}
-                        <span style={{ color: 'rgba(255,255,255,0.88)', fontWeight: 600 }}>
+                        <span style={{ color: 'rgba(99,179,237,0.9)', fontWeight: 600 }}>
                           {`all ${destinationLinkCount} links`}
                         </span>
                         {' from this tutorial'}
