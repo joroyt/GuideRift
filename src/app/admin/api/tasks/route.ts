@@ -76,6 +76,10 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
 
   const supabase = getServerClient()
+
+  await supabase.from('analytics_events').delete().eq('task_id', id)
+  await supabase.from('sessions').delete().eq('task_id', id)
+
   const { error } = await supabase.from('tasks').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
