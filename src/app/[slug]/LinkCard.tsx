@@ -430,19 +430,43 @@ export default function LinkCard({
 
                         {/* Text */}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p
-                            style={{
-                              margin: 0,
-                              fontSize: '15px',
-                              fontWeight: 500,
-                              color: 'rgba(255,255,255,0.85)',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {task.name}
-                          </p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: '15px',
+                                fontWeight: 500,
+                                color: 'rgba(255,255,255,0.85)',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                flex: 1,
+                                minWidth: 0,
+                              }}
+                            >
+                              {task.name}
+                            </p>
+                            {task.estimated_time && (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                  flexShrink: 0,
+                                  background: 'rgba(255,255,255,0.06)',
+                                  border: '0.5px solid rgba(255,255,255,0.08)',
+                                  borderRadius: '99px',
+                                  padding: '2px 8px',
+                                  fontSize: '11px',
+                                  color: 'rgba(255,255,255,0.35)',
+                                  visibility: isWorkink && isLocked ? 'hidden' : 'visible',
+                                }}
+                              >
+                                <Clock size={10} strokeWidth={1.5} />
+                                {task.estimated_time}
+                              </span>
+                            )}
+                          </div>
                           {task.description && (
                             <p
                               style={{
@@ -454,26 +478,6 @@ export default function LinkCard({
                             >
                               {task.description}
                             </p>
-                          )}
-                          {task.estimated_time && (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                marginTop: '6px',
-                                background: 'rgba(255,255,255,0.06)',
-                                border: '0.5px solid rgba(255,255,255,0.08)',
-                                borderRadius: '99px',
-                                padding: '2px 8px',
-                                fontSize: '11px',
-                                color: 'rgba(255,255,255,0.35)',
-                                visibility: isWorkink && isLocked ? 'hidden' : 'visible',
-                              }}
-                            >
-                              <Clock size={10} strokeWidth={1.5} />
-                              {task.estimated_time}
-                            </span>
                           )}
                         </div>
 
