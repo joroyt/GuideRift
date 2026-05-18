@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
 import { getServerClient } from '@/lib/supabase'
 import { getCountryFromRequest } from '@/lib/geo'
 import { selectTasksForCountry } from '@/lib/tasks'
@@ -61,6 +62,7 @@ export default async function SlugPage({
   if (!data) notFound()
 
   const { link, tasks } = data
+  const isAdmin = !!(cookies().get('admin_token')?.value)
 
   if (tasks.length === 0) {
     return (
@@ -93,5 +95,5 @@ export default async function SlugPage({
     )
   }
 
-  return <LinkCard link={link} tasks={tasks} />
+  return <LinkCard link={link} tasks={tasks} isAdmin={isAdmin} />
 }

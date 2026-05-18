@@ -50,9 +50,11 @@ async function fireAnalytics(
 export default function LinkCard({
   link,
   tasks,
+  isAdmin = false,
 }: {
   link: LinkData
   tasks: TaskOption[]
+  isAdmin?: boolean
 }) {
   const recommended = tasks.find((t) => t.is_recommended) ?? tasks[0]
   const [selectedTask, setSelectedTask] = useState<TaskOption>(recommended)
@@ -114,6 +116,23 @@ export default function LinkCard({
   const handleTaskSelect = (task: TaskOption) => {
     setSelectedTask(task)
     fireAnalytics('task_selected', link.id, task.id)
+  }
+
+  const skipToDestination = async () => {
+    try {
+      const res = await fetch(`/api/admin/destination-links?linkId=${link.id}`)
+      if (!res.ok) return
+      const json = await res.json()
+      const links: DestinationLink[] = json.destinationLinks ?? []
+      if (links.length === 1) {
+        window.location.href = links[0].url
+      } else if (links.length > 1) {
+        setDestinationLinks(links)
+        setFlowState('links_revealed')
+      }
+    } catch {
+      // silent
+    }
   }
 
   const handleContinue = async () => {
@@ -233,6 +252,28 @@ export default function LinkCard({
           background: #1a1a1a !important;
         }
       `}</style>
+
+      {isAdmin && (
+        <button
+          onClick={skipToDestination}
+          style={{
+            position: 'fixed',
+            top: '16px',
+            right: '16px',
+            zIndex: 50,
+            background: '#1a1a1a',
+            border: '0.5px solid rgba(255,255,255,0.1)',
+            borderRadius: '8px',
+            padding: '6px 12px',
+            fontSize: '12px',
+            color: 'rgba(255,255,255,0.4)',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          Skip (Admin)
+        </button>
+      )}
 
       <main
         style={{
