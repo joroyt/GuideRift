@@ -11,6 +11,7 @@ export interface TaskOption {
   sort_order: number
   allowed_countries: string[] | null
   commission_eur: number | null
+  estimated_time: string | null
 }
 
 export async function selectTasksForCountry(country: string | null): Promise<TaskOption[]> {
@@ -18,7 +19,7 @@ export async function selectTasksForCountry(country: string | null): Promise<Tas
 
   const { data: paidTasks } = await supabase
     .from('tasks')
-    .select('id, name, description, affiliate_url, task_type, icon, allowed_countries, commission_eur')
+    .select('id, name, description, affiliate_url, task_type, icon, allowed_countries, commission_eur, estimated_time')
     .in('task_type', ['mylead', 'cpagrip'])
     .eq('is_active', true)
 
@@ -34,7 +35,7 @@ export async function selectTasksForCountry(country: string | null): Promise<Tas
 
   const { data: workinkTasks } = await supabase
     .from('tasks')
-    .select('id, name, description, affiliate_url, task_type, icon')
+    .select('id, name, description, affiliate_url, task_type, icon, estimated_time')
     .eq('task_type', 'workink')
     .eq('is_active', true)
     .limit(1)
@@ -50,6 +51,7 @@ export async function selectTasksForCountry(country: string | null): Promise<Tas
     sort_order: idx,
     allowed_countries: task.allowed_countries ?? null,
     commission_eur: task.commission_eur ?? null,
+    estimated_time: task.estimated_time ?? null,
   }))
 
   const workinkTask = workinkTasks?.[0]
@@ -65,6 +67,7 @@ export async function selectTasksForCountry(country: string | null): Promise<Tas
       sort_order: result.length,
       allowed_countries: null,
       commission_eur: null,
+      estimated_time: workinkTask.estimated_time ?? null,
     })
   }
 

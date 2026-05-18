@@ -16,6 +16,7 @@ interface Task {
   allowed_countries: string[] | null
   commission_eur: number | null
   cpagrip_password: string | null
+  estimated_time: string | null
 }
 
 const btnBase: React.CSSProperties = {
@@ -78,6 +79,7 @@ export default function AdminTasksPage() {
   const [fCommission, setFCommission] = useState('')
   const [fCpagripPassword, setFCpagripPassword] = useState('')
   const [fIcon, setFIcon] = useState('Play')
+  const [fEstimatedTime, setFEstimatedTime] = useState('')
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -101,6 +103,7 @@ export default function AdminTasksPage() {
     setFCommission('')
     setFCpagripPassword('')
     setFIcon('Play')
+    setFEstimatedTime('')
     setFormError('')
     setShowForm(true)
   }
@@ -116,6 +119,7 @@ export default function AdminTasksPage() {
     setFCommission(task.commission_eur != null ? String(task.commission_eur) : '')
     setFCpagripPassword(task.cpagrip_password ?? '')
     setFIcon(task.icon ?? defaultIconForType(task.task_type))
+    setFEstimatedTime(task.estimated_time ?? '')
     setFormError('')
     setShowForm(true)
   }
@@ -156,6 +160,7 @@ export default function AdminTasksPage() {
       commission_eur,
       cpagrip_password: fTaskType === 'cpagrip' ? (fCpagripPassword.trim() || null) : null,
       icon: fIcon || defaultIconForType(fTaskType),
+      estimated_time: fEstimatedTime.trim() || null,
     }
 
     const res = editingTask
@@ -331,6 +336,17 @@ export default function AdminTasksPage() {
                 )}
               </>
             )}
+
+            <div>
+              <label style={label}>Estimated Time</label>
+              <input
+                style={inputStyle}
+                value={fEstimatedTime}
+                onChange={(e) => setFEstimatedTime(e.target.value)}
+                placeholder="e.g. ~2 min"
+              />
+              <p style={helperText}>Optional — shown as a small badge on the task card</p>
+            </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <label style={{ ...label, marginBottom: 0 }}>Active</label>

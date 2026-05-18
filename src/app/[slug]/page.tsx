@@ -34,6 +34,7 @@ export interface LinkData {
 async function getLinkWithTasks(slug: string): Promise<{
   link: LinkData
   tasks: Awaited<ReturnType<typeof selectTasksForCountry>>
+  destinationLinkCount: number
 } | null> {
   const supabase = getServerClient()
 
@@ -47,9 +48,19 @@ async function getLinkWithTasks(slug: string): Promise<{
 
   const country = getCountryFromRequest()
 
-  const tasks = await selectTasksForCountry(country)
+  const [tasks, { count }] = await Promise.all([
+    selectTasksForCountry(country),
+    supabase
+      .from('destination_links')
+      .select('id', { count: 'exact', head: true })
+      .eq('link_id', link.id),
+  ])
 
-  return { link: { id: link.id, title: link.title, slug: link.slug }, tasks }
+  return {
+    link: { id: link.id, title: link.title, slug: link.slug },
+    tasks,
+    destinationLinkCount: count ?? 0,
+  }
 }
 
 export default async function SlugPage({
@@ -61,7 +72,7 @@ export default async function SlugPage({
 
   if (!data) notFound()
 
-  const { link, tasks } = data
+  const { link, tasks, destinationLinkCount } = data
   const isAdmin = !!(cookies().get('admin_token')?.value)
 
   if (tasks.length === 0) {
@@ -95,5 +106,5 @@ export default async function SlugPage({
     )
   }
 
-  return <LinkCard link={link} tasks={tasks} isAdmin={isAdmin} />
+  return <LinkCard link={link} tasks={tasks} isAdmin={isAdmin} destinationLinkCount={destinationLinkCount} />
 }

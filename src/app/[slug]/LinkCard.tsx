@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Link2, ExternalLink } from 'lucide-react'
+import { Link2, ExternalLink, Clock } from 'lucide-react'
 import type { LinkData } from './page'
 import type { TaskOption } from '@/lib/tasks'
 import { renderIcon } from '@/lib/icons'
@@ -51,10 +51,12 @@ export default function LinkCard({
   link,
   tasks,
   isAdmin = false,
+  destinationLinkCount = 1,
 }: {
   link: LinkData
   tasks: TaskOption[]
   isAdmin?: boolean
+  destinationLinkCount?: number
 }) {
   const recommended = tasks.find((t) => t.is_recommended) ?? tasks[0]
   const [selectedTask, setSelectedTask] = useState<TaskOption>(recommended)
@@ -334,7 +336,17 @@ export default function LinkCard({
                       color: 'rgba(255,255,255,0.35)',
                     }}
                   >
-                    Complete one task to access the link
+                    {destinationLinkCount >= 2 ? (
+                      <>
+                        {'Complete one task to unlock '}
+                        <span style={{ color: 'rgba(255,255,255,0.88)', fontWeight: 600 }}>
+                          {`all ${destinationLinkCount} links`}
+                        </span>
+                        {' from this tutorial'}
+                      </>
+                    ) : (
+                      'Complete one task to access the link'
+                    )}
                   </p>
                 </div>
               </div>
@@ -436,6 +448,25 @@ export default function LinkCard({
                             >
                               {task.description}
                             </p>
+                          )}
+                          {task.estimated_time && !(isWorkink && isLocked) && (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                marginTop: '6px',
+                                background: 'rgba(255,255,255,0.06)',
+                                border: '0.5px solid rgba(255,255,255,0.08)',
+                                borderRadius: '99px',
+                                padding: '2px 8px',
+                                fontSize: '11px',
+                                color: 'rgba(255,255,255,0.35)',
+                              }}
+                            >
+                              <Clock size={10} strokeWidth={1.5} />
+                              {task.estimated_time}
+                            </span>
                           )}
                         </div>
 
