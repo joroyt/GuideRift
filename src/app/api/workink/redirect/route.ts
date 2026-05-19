@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
       if (error) console.error('[workink/redirect] Analytics error:', error)
     })
 
-  const url = `${WORKINK_LINK_URL}?sr=${encodeURIComponent(sr)}`
+  const url = `${WORKINK_LINK_URL}?sr=${sr}`
   console.log('[workink/redirect] Redirecting to:', url)
   return NextResponse.json({ url })
 }

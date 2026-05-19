@@ -28,5 +28,5 @@ export async function GET(req: NextRequest) {
       })
   }
 
-  return NextResponse.redirect(decodeURIComponent(dest), { status: 302 })
+  return NextResponse.redirect(dest, { status: 302 })
 }
