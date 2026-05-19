@@ -133,5 +133,7 @@ export async function DELETE(req: NextRequest) {
   const { error } = await supabase.from('links').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  revalidatePath('/[slug]', 'page')
+
   return NextResponse.json({ ok: true })
 }
