@@ -126,8 +126,9 @@ export async function DELETE(req: NextRequest) {
 
   const supabase = getServerClient()
 
-  const { error: dlError } = await supabase.from('destination_links').delete().eq('link_id', id)
-  if (dlError) return NextResponse.json({ error: dlError.message }, { status: 500 })
+  await supabase.from('analytics_events').delete().eq('link_id', id)
+  await supabase.from('sessions').delete().eq('link_id', id)
+  await supabase.from('destination_links').delete().eq('link_id', id)
 
   const { error } = await supabase.from('links').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
