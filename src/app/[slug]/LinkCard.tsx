@@ -122,6 +122,23 @@ export default function LinkCard({
     return () => clearInterval(interval)
   }, [flowState, sessionId])
 
+  useEffect(() => {
+    const isActive = ['mylead_waiting', 'cpagrip_waiting', 'workink_loading'].includes(flowState)
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+
+    if (isActive) {
+      window.addEventListener('beforeunload', handleBeforeUnload)
+    } else {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [flowState])
+
   const handleTaskSelect = (task: TaskOption) => {
     setSelectedTask(task)
     fireAnalytics('task_selected', link.id, task.id)
