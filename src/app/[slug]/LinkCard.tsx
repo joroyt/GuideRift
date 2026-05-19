@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Link2, ExternalLink, Clock } from 'lucide-react'
-import type { LinkData } from './page'
+import type { LinkData, DestinationLink } from './page'
 import type { TaskOption } from '@/lib/tasks'
 import { renderIcon } from '@/lib/icons'
 
@@ -14,7 +14,6 @@ type FlowState =
   | 'links_revealed'
   | 'error'
 
-type DestinationLink = { label: string; url: string }
 
 function Spinner() {
   return (
@@ -52,17 +51,25 @@ export default function LinkCard({
   tasks,
   isAdmin = false,
   destinationLinkCount = 1,
+  unlockedViaWorkink = false,
+  initialDestinationLinks = [],
 }: {
   link: LinkData
   tasks: TaskOption[]
   isAdmin?: boolean
   destinationLinkCount?: number
+  unlockedViaWorkink?: boolean
+  initialDestinationLinks?: DestinationLink[]
 }) {
   const recommended = tasks.find((t) => t.is_recommended) ?? tasks[0]
   const [selectedTask, setSelectedTask] = useState<TaskOption>(recommended)
-  const [flowState, setFlowState] = useState<FlowState>('selecting')
+  const [flowState, setFlowState] = useState<FlowState>(
+    unlockedViaWorkink && initialDestinationLinks.length > 0 ? 'links_revealed' : 'selecting'
+  )
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [destinationLinks, setDestinationLinks] = useState<DestinationLink[]>([])
+  const [destinationLinks, setDestinationLinks] = useState<DestinationLink[]>(
+    unlockedViaWorkink ? initialDestinationLinks : []
+  )
   const analyticsFiredRef = useRef(false)
 
   // 60-second cooldown on Watch Ads when any other offer type is visible

@@ -31,6 +31,8 @@ export interface LinkData {
   slug: string
 }
 
+export type DestinationLink = { label: string; url: string }
+
 async function getLinkWithTasks(slug: string): Promise<{
   link: LinkData
   tasks: Awaited<ReturnType<typeof selectTasksForCountry>>
@@ -65,8 +67,10 @@ async function getLinkWithTasks(slug: string): Promise<{
 
 export default async function SlugPage({
   params,
+  searchParams,
 }: {
   params: { slug: string }
+  searchParams: { [key: string]: string | string[] | undefined }
 }) {
   const data = await getLinkWithTasks(params.slug)
 
@@ -74,6 +78,18 @@ export default async function SlugPage({
 
   const { link, tasks, destinationLinkCount } = data
   const isAdmin = !!(cookies().get('admin_token')?.value)
+  const unlockedViaWorkink = searchParams.unlocked === '1'
+
+  let initialDestinationLinks: DestinationLink[] = []
+  if (unlockedViaWorkink) {
+    const supabase = getServerClient()
+    const { data: destLinks } = await supabase
+      .from('destination_links')
+      .select('label, url')
+      .eq('link_id', link.id)
+      .order('sort_order', { ascending: true })
+    initialDestinationLinks = destLinks ?? []
+  }
 
   if (tasks.length === 0) {
     return (
@@ -106,5 +122,5 @@ export default async function SlugPage({
     )
   }
 
-  return <LinkCard link={link} tasks={tasks} isAdmin={isAdmin} destinationLinkCount={destinationLinkCount} />
+  return <LinkCard link={link} tasks={tasks} isAdmin={isAdmin} destinationLinkCount={destinationLinkCount} unlockedViaWorkink={unlockedViaWorkink} initialDestinationLinks={initialDestinationLinks} />
 }

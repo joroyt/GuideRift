@@ -28,5 +28,26 @@ export async function GET(req: NextRequest) {
       })
   }
 
-  return NextResponse.redirect(dest, { status: 302 })
+  const { data: destLinks } = await supabase
+    .from('destination_links')
+    .select('label, url')
+    .eq('link_id', linkId)
+    .order('sort_order', { ascending: true })
+
+  if (!destLinks || destLinks.length <= 1) {
+    return NextResponse.redirect(destLinks?.[0]?.url ?? dest, { status: 302 })
+  }
+
+  const { data: link } = await supabase
+    .from('links')
+    .select('slug')
+    .eq('id', linkId)
+    .single()
+
+  if (!link?.slug) {
+    return NextResponse.redirect(dest, { status: 302 })
+  }
+
+  const origin = new URL(req.url).origin
+  return NextResponse.redirect(`${origin}/${link.slug}?unlocked=1`, { status: 302 })
 }
