@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { getServerClient } from '@/lib/supabase'
 import { verifyToken, ADMIN_COOKIE } from '@/lib/auth'
 
@@ -108,6 +109,11 @@ export async function PATCH(req: NextRequest) {
     }
   }
 
+  const { data: updatedLink } = await supabase.from('links').select('slug').eq('id', id).single()
+  if (updatedLink?.slug) {
+    revalidatePath(`/${updatedLink.slug}`)
+  }
+
   return NextResponse.json({ ok: true })
 }
 
@@ -119,6 +125,10 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
 
   const supabase = getServerClient()
+
+  const { error: dlError } = await supabase.from('destination_links').delete().eq('link_id', id)
+  if (dlError) return NextResponse.json({ error: dlError.message }, { status: 500 })
+
   const { error } = await supabase.from('links').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
