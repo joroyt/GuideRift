@@ -123,7 +123,7 @@ export default function LinkCard({
   }, [flowState, sessionId])
 
   useEffect(() => {
-    const isActive = ['mylead_waiting', 'cpagrip_waiting', 'workink_loading'].includes(flowState)
+    const isActive = ['mylead_waiting', 'cpagrip_waiting', 'workink_loading', 'links_revealed'].includes(flowState)
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault()
