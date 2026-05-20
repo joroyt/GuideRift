@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
-type Filter = 'today' | '7d' | '30d' | 'all'
+type Filter = 'today' | 'yesterday' | '7d' | '30d' | 'all'
 
 interface Totals {
   page_views: number
@@ -67,6 +67,16 @@ const getMidnightUTC = () => {
   return midnight.toISOString()
 }
 
+const getYesterdayRange = () => {
+  const now = new Date()
+  const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0)
+  const endOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+  return {
+    since: startOfYesterday.toISOString(),
+    until: endOfYesterday.toISOString(),
+  }
+}
+
 export default function AdminAnalyticsPage() {
   const [filter, setFilter] = useState<Filter>('7d')
   const [data, setData] = useState<AnalyticsData | null>(null)
@@ -74,10 +84,15 @@ export default function AdminAnalyticsPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const url =
-      filter === 'today'
-        ? `/admin/api/analytics?since=${encodeURIComponent(getMidnightUTC())}`
-        : `/admin/api/analytics?period=${filter}`
+    let url: string
+    if (filter === 'today') {
+      url = `/admin/api/analytics?since=${encodeURIComponent(getMidnightUTC())}`
+    } else if (filter === 'yesterday') {
+      const { since, until } = getYesterdayRange()
+      url = `/admin/api/analytics?since=${encodeURIComponent(since)}&until=${encodeURIComponent(until)}`
+    } else {
+      url = `/admin/api/analytics?period=${filter}`
+    }
     const res = await fetch(url)
     const json = await res.json()
     setData(json)
@@ -88,6 +103,7 @@ export default function AdminAnalyticsPage() {
 
   const filterLabel: Record<Filter, string> = {
     today: 'Today',
+    yesterday: 'Yesterday',
     '7d': '7 days',
     '30d': '30 days',
     all: 'All time',
@@ -128,7 +144,7 @@ export default function AdminAnalyticsPage() {
             gap: '2px',
           }}
         >
-          {(['today', '7d', '30d', 'all'] as Filter[]).map((f) => (
+          {(['today', 'yesterday', '7d', '30d', 'all'] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}

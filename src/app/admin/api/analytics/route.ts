@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const since = searchParams.get('since')
+  const until = searchParams.get('until')
   const period = searchParams.get('period') ?? '7d'
   const startDate = since ?? getStartDate(period)
 
@@ -37,6 +38,10 @@ export async function GET(req: NextRequest) {
 
   if (startDate) {
     query = query.gte('created_at', startDate)
+  }
+
+  if (until) {
+    query = query.lte('created_at', until)
   }
 
   const { data: events, error } = await query
