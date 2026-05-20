@@ -25,8 +25,9 @@ export async function GET(req: NextRequest) {
   if (!(await checkAuth(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
+  const since = searchParams.get('since')
   const period = searchParams.get('period') ?? '7d'
-  const startDate = getStartDate(period)
+  const startDate = since ?? getStartDate(period)
 
   const supabase = getServerClient()
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
-type Period = '7d' | '30d' | 'all'
+type Filter = 'today' | '7d' | '30d' | 'all'
 
 interface Totals {
   page_views: number
@@ -61,22 +61,33 @@ function MetricCard({ label, value }: { label: string; value: string }) {
   )
 }
 
+const getMidnightUTC = () => {
+  const now = new Date()
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+  return midnight.toISOString()
+}
+
 export default function AdminAnalyticsPage() {
-  const [period, setPeriod] = useState<Period>('7d')
+  const [filter, setFilter] = useState<Filter>('7d')
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`/admin/api/analytics?period=${period}`)
+    const url =
+      filter === 'today'
+        ? `/admin/api/analytics?since=${encodeURIComponent(getMidnightUTC())}`
+        : `/admin/api/analytics?period=${filter}`
+    const res = await fetch(url)
     const json = await res.json()
     setData(json)
     setLoading(false)
-  }, [period])
+  }, [filter])
 
   useEffect(() => { load() }, [load])
 
-  const periodLabel: Record<Period, string> = {
+  const filterLabel: Record<Filter, string> = {
+    today: 'Today',
     '7d': '7 days',
     '30d': '30 days',
     all: 'All time',
@@ -117,10 +128,10 @@ export default function AdminAnalyticsPage() {
             gap: '2px',
           }}
         >
-          {(['7d', '30d', 'all'] as Period[]).map((p) => (
+          {(['today', '7d', '30d', 'all'] as Filter[]).map((f) => (
             <button
-              key={p}
-              onClick={() => setPeriod(p)}
+              key={f}
+              onClick={() => setFilter(f)}
               style={{
                 border: 'none',
                 cursor: 'pointer',
@@ -129,12 +140,12 @@ export default function AdminAnalyticsPage() {
                 fontWeight: 500,
                 padding: '5px 12px',
                 borderRadius: '7px',
-                background: period === p ? 'rgba(255,255,255,0.08)' : 'transparent',
-                color: period === p ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.35)',
+                background: filter === f ? 'rgba(255,255,255,0.08)' : 'transparent',
+                color: filter === f ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.35)',
                 transition: 'all 0.12s ease',
               }}
             >
-              {periodLabel[p]}
+              {filterLabel[f]}
             </button>
           ))}
         </div>
