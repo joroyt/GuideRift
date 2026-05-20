@@ -78,7 +78,7 @@ const getYesterdayRange = () => {
 }
 
 export default function AdminAnalyticsPage() {
-  const [filter, setFilter] = useState<Filter>('7d')
+  const [filter, setFilter] = useState<Filter>('today')
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
 
