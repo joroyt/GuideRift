@@ -79,9 +79,11 @@ export default function LinkCard({
   useEffect(() => {
     if (!analyticsFiredRef.current) {
       analyticsFiredRef.current = true
-      fireAnalytics('page_view', link.id)
+      if (!unlockedViaWorkink) {
+        fireAnalytics('page_view', link.id)
+      }
     }
-  }, [link.id])
+  }, [link.id, unlockedViaWorkink])
 
   // Countdown timer — runs once on mount, only when paid tasks are present
   useEffect(() => {
